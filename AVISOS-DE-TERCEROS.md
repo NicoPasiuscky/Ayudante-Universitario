@@ -22,7 +22,7 @@ Las carpetas `sistema-visual/fonts/web/` y `sistema-visual/fonts/graficos/` cont
 
 ## Programas externos (no se distribuyen con el proyecto)
 Se instalan aparte y se ejecutan como programas independientes; su licencia no se extiende al proyecto.
-- Pandoc (GPL v2 o posterior), Python, Graphviz, PlantUML, Firefox, LibreOffice.
+- Pandoc (GPL v2 o posterior), Python, Graphviz, PlantUML, navegadores (Firefox, Chrome, Edge, Brave, Chromium u otros), LibreOffice.
 - Bibliotecas de Python opcionales o requeridas: PyMuPDF (AGPL v3 o licencia comercial de Artifex), NumPy, SymPy, Matplotlib, Pillow, fontTools, lxml, Docling.
 
 Quien use el proyecto personalmente no tiene obligaciones adicionales por ellos. Quien lo integre en un servicio o producto distribuido debe revisar las condiciones de cada una, en especial la AGPL de PyMuPDF.

@@ -1,6 +1,6 @@
 # Adaptadores: usar el proyecto con cualquier IA
 
-El proyecto no depende de ningún modelo ni empresa: todo el conocimiento está en archivos Markdown (`INSTRUCCIONES.md`, `flujos/`, `roles/`, `apoyo/`) y las herramientas de generación son programas comunes (Python, Pandoc, Firefox). Lo único que cambia de una IA a otra es **cómo se entera de que esas instrucciones existen**. Esa es la tarea de esta carpeta.
+El proyecto no depende de ningún modelo ni empresa: todo el conocimiento está en archivos Markdown (`INSTRUCCIONES.md`, `flujos/`, `roles/`, `apoyo/`) y las herramientas de generación son programas comunes (Python, Pandoc y el navegador que ya uses: Firefox, Chrome, Edge, Brave...). Lo único que cambia de una IA a otra es **cómo se entera de que esas instrucciones existen**. Esa es la tarea de esta carpeta.
 
 ## Qué hay en la raíz del proyecto
 Ya vienen creados los archivos de entrada de las herramientas más usadas. Todos tienen el mismo contenido corto, que manda a leer `INSTRUCCIONES.md`:

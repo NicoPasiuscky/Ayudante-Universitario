@@ -70,7 +70,7 @@ Anotá lo que ya tenés para que la IA no intente reinstalarlo. La guía de inst
 - Sistema operativo: [completar]
 - Python 3.10 o superior: [completar sí/no]
 - Pandoc 3.8 o superior: [completar sí/no]
-- Firefox: [completar sí/no]
+- Navegador (Firefox, Chrome, Edge, Brave u otro basado en Chromium): [completar cuál]
 - Graphviz / PlantUML (solo para diagramas grandes): [completar sí/no]
 - Word o LibreOffice (para revisar `.docx`): [completar]
 

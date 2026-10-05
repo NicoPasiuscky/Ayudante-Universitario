@@ -22,7 +22,7 @@ Familias que declara la pagina (nombres propios del sistema, para no chocar
 con una Alegreya Sans instalada en la compu con otra version):
   "Estudio Sans"   Alegreya Sans 400, 400 italica, 500, 500 italica, 700, 700 italica, 800
   "Estudio Mono"   JetBrains Mono (solo codigo)
-  "Estudio Mate"   Noto Sans Math recortada, con su tabla MATH (MathML en Firefox)
+  "Estudio Mate"   Noto Sans Math recortada, con su tabla MATH (MathML en el navegador)
   "Estudio Marcas" visto, aspa y asterisco (U+2713, U+2717, U+2731) de Noto Sans Symbols 2
 
 Uso:  python herramientas/construir_fuentes.py
