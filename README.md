@@ -37,5 +37,8 @@ No contiene datos de ninguna persona, materia ni trabajo realizado: es una plant
 - **Independiente del modelo**: el conocimiento está en archivos de texto, no en una plataforma.
 - **Limpio y portable**: funciona en Windows, macOS y Linux; ningún dato personal queda en el proyecto.
 
-## Licencias
-Las tipografías incluidas (Alegreya Sans, JetBrains Mono, Noto Sans Math y Noto Sans Symbols 2) son de código abierto con licencia SIL Open Font License 1.1; los textos de licencia están en `sistema-visual/fonts/originales/`. Paged.js y Mermaid van incrustados en archivos de `sistema-visual/` bajo sus propias licencias de código abierto. Falta definir la licencia del resto del proyecto: elegila antes de compartirlo.
+## Licencias y contribuciones
+- **Código** (scripts de Python, filtros de Lua, CSS y plantillas): licencia MIT, en `LICENSE`.
+- **Textos** (manuales, flujos, roles, guías y demostraciones): Creative Commons Atribución 4.0 (CC BY 4.0), en `LICENSE-TEXTOS.md`.
+- **Componentes de terceros** (tipografías, Paged.js, Mermaid): conservan su propia licencia, detallada en `AVISOS-DE-TERCEROS.md`.
+- **Mejoras de la comunidad**: se proponen con un pull request y entran solo si las aprueba quien mantiene el proyecto. Ver `CONTRIBUTING.md`.
