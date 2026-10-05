@@ -23,7 +23,7 @@ No contiene datos de ninguna persona, materia ni trabajo realizado: es una plant
 | `apoyo/` | Guías de generación, de diagramas y estándares por área de conocimiento |
 | `sistema-visual/` | Las herramientas que generan los documentos (Pandoc, Python, plantillas, tipografías) y su documentación |
 | `adaptadores/` | Cómo conectar el proyecto con cada herramienta de IA |
-| `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.cursor/`, `.github/` | Archivos de entrada que cada herramienta de IA reconoce; todos mandan a leer `INSTRUCCIONES.md` |
+| `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` | Archivos de entrada que reconocen las herramientas de IA. El texto está solo en `AGENTS.md`; los otros dos lo importan |
 
 ## Inicio rápido
 1. Instalá Python, Pandoc y un navegador (el que ya uses sirve), y después `python -m pip install -r requirements.txt` (detalle en `MANUAL-DE-IMPLEMENTACION.md`).

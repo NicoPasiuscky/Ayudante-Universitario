@@ -9,7 +9,7 @@ Copyright (c) 2026 NicoPasiuscky y quienes contribuyan a Ayudante Universitario.
 
 ## Qué se considera «texto»
 - Todos los archivos Markdown (`*.md`): manuales, `INSTRUCCIONES.md`, `flujos/`, `roles/`, `apoyo/`, `configuracion/`, `adaptadores/LEEME.md`, la documentación de `sistema-visual/` y el contenido de las demostraciones (`sistema-visual/demo/` y `sistema-visual/docx/demo/`).
-- Los archivos de entrada que apuntan a las instrucciones (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.cursor/`, `.github/copilot-instructions.md`).
+- Los archivos de entrada que apuntan a las instrucciones (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`).
 
 ## Qué se considera «código»
 Todo lo demás que escribió el proyecto (scripts de Python, filtros de Lua, hojas de estilo CSS, plantillas HTML y scripts de las plantillas) está bajo la **licencia MIT** del archivo `LICENSE`.
