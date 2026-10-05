@@ -27,9 +27,3 @@ Al abrir un pull request aceptás que tu aporte se publique bajo las licencias d
 
 ## Reglas de convivencia
 Se espera un trato respetuoso. Los comentarios agresivos o discriminatorios se eliminan, y quien los escriba puede ser bloqueado.
-
-## Para quien mantiene el proyecto: configuración recomendada en GitHub
-Esta configuración no se puede dejar en archivos; se hace en el sitio.
-- *Settings → Branches → Add branch ruleset* (o *branch protection rule*) sobre `main`: exigir pull request antes de fusionar, exigir al menos 1 aprobación, exigir la revisión de los propietarios del código (`CODEOWNERS`) y no permitir saltear las reglas ni siquiera a los administradores.
-- *Settings → Collaborators*: no agregar a nadie con permiso de escritura salvo que lo decidas; las personas externas contribuyen desde forks.
-- *Settings → General → Pull Requests*: activar «Automatically delete head branches» para mantener el repositorio ordenado.
