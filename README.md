@@ -26,7 +26,7 @@ No contiene datos de ninguna persona, materia ni trabajo realizado: es una plant
 | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.cursor/`, `.github/` | Archivos de entrada que cada herramienta de IA reconoce; todos mandan a leer `INSTRUCCIONES.md` |
 
 ## Inicio rápido
-1. Instalá Python, Pandoc y Firefox, y después `python -m pip install -r requirements.txt` (detalle en `MANUAL-DE-IMPLEMENTACION.md`).
+1. Instalá Python, Pandoc y un navegador (el que ya uses sirve), y después `python -m pip install -r requirements.txt` (detalle en `MANUAL-DE-IMPLEMENTACION.md`).
 2. Abrí tu herramienta de IA dentro de esta carpeta (si no lee archivos, `python adaptadores/adaptar.py --prompt-unico` arma un documento para pegar).
 3. Pedile: «Hacé la puesta en marcha». Te pregunta por tu carrera y tus carpetas, y lo anota.
 4. Empezá a pedir: «Resumí la unidad 1 de [materia] en modo extenso, en hoja A4».

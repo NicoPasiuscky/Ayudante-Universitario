@@ -4,7 +4,7 @@
 Es una envoltura fina de construir.py, imprimir_a4.py, construir_docx.py y nombres.py: hace
 lo mismo que los comandos largos de apoyo/generar-html.md, apoyo/material-a4.md y flujos/tp.md,
 pero con una sola linea. Corre en Windows, macOS y Linux. Requiere Pandoc y, para PDF o Word,
-Firefox (ver MANUAL-DE-IMPLEMENTACION.md).
+un navegador (Firefox, Chrome, Edge, Brave...; ver MANUAL-DE-IMPLEMENTACION.md).
 
 Subcomandos:
 
@@ -27,7 +27,7 @@ Subcomandos:
       python sistema-visual/estudio.py nombre "Materia A" Resumen --unidades 1 2 3 --modo corto --formato "hoja A4"
       python sistema-visual/estudio.py nombre "Materia A" "Trabajo práctico" --unidades 4
 
-  entorno   Que programas encontro (Pandoc, Firefox, LibreOffice)
+  entorno   Que programas encontro (Pandoc, navegador, LibreOffice)
 
 --formato:  completo | a4 | diapositivas        --modo: extenso | corto
 --salida:   html | html+pdf | pdf  (solo Hoja A4, material y TP; en HTML completo y diapositivas es siempre HTML)

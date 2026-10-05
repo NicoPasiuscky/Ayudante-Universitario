@@ -52,7 +52,7 @@ El valor es lo que se mide en cada instante. La variación neta es la diferencia
 ## Tasa de variación promedio {#sec:tasa}
 
 ::: {.definicion #def:tasa titulo="tasa de variación promedio"}
-La tasa de variación promedio de una magnitud es su variación neta dividida por el tiempo que tardó en producirse. Como la variación neta tiene signo, la tasa promedio también lo tiene: es positiva si la magnitud terminó más alta que como empezó y negativa en el caso contrario.
+La tasa de variación promedio de una magnitud es su variación neta dividida por el tiempo que tardó en producirse. Tiene signo, como la variación neta.
 :::
 
 ::: clave
@@ -66,6 +66,8 @@ Se mide en la unidad de la magnitud sobre la unidad de tiempo: en el ejemplo, gr
 ---
 
 Para trabajar con números, sea una muestra cuya temperatura se anota cada 10 min. La [](#tbl:muestra) reúne esos datos y la [](#fig:yt) los dibuja como gráfica de temperatura en función del tiempo.
+
+---
 
 ::: {#tbl:muestra}
 | Medición | $t$ (min) | $y$ (°C) |

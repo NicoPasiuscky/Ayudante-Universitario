@@ -1,10 +1,10 @@
-"""imprimir_a4.py - imprime un HTML A4 (Paged.js) a PDF con Firefox sin interfaz,
-via Marionette. Reusa la clase Firefox de captura_espera.py.
+"""imprimir_a4.py - imprime un HTML A4 (Paged.js) a PDF con navegador sin interfaz,
+via Marionette. Reusa la clase Navegador de captura_espera.py.
 
 El PDF es un formato de entrega del proyecto: un
 resumen en Hoja A4, un TP, un parcial o una hoja de soluciones pueden
 salir en HTML, en PDF o en .docx (el cuestionario, solo HTML). No es un generador aparte:
-es el mismo HTML A4 impreso por Firefox. `entregar()` deja el PDF (y el HTML, si se
+es el mismo HTML A4 impreso por el navegador. `entregar()` deja el PDF (y el HTML, si se
 pide) en la carpeta de salida, con el titulo del PDF igual al nombre base. Como
 artefacto de verificacion (herramientas/verificar_margenes.py lo mide) va al
 directorio temporal.
@@ -43,14 +43,11 @@ sys.dont_write_bytecode = True
 AQUI = os.path.dirname(os.path.abspath(__file__))
 RAIZ = os.path.dirname(AQUI)
 sys.path.insert(0, AQUI)
-from captura_espera import Firefox  # noqa: E402
+from captura_espera import Navegador  # noqa: E402
 
 TEMPORAL = os.path.join(tempfile.gettempdir(), "v4_impresion")
 PAGINADO = "document.documentElement.dataset.paginado=='1'"
 HOJAS = "return document.querySelectorAll('.pagedjs_page').length;"
-OPCIONES = {"page": {"width": 21.0, "height": 29.7},
-            "margin": {"top": 0, "bottom": 0, "left": 0, "right": 0},
-            "shrinkToFit": False, "background": True}
 
 # Piezas A4 del sistema (relativas a v4/): resumenes y material impreso
 PIEZAS_A4 = ["demo/resumen-extenso-a4.html", "demo/resumen-corto-a4.html", "demo/parcial.html",
@@ -59,26 +56,26 @@ PIEZAS_A4 = ["demo/resumen-extenso-a4.html", "demo/resumen-corto-a4.html", "demo
 
 
 def imprimir(ff, html, pdf, maximo=180):
-    """Imprime `html` en `pdf` con la sesion de Firefox `ff`. Devuelve la cantidad
+    """Imprime `html` en `pdf` con la sesion del navegador `ff`. Devuelve la cantidad
     de hojas que armo Paged.js."""
     url = pathlib.Path(os.path.abspath(html)).as_uri()
-    ff.cmd("WebDriver:SetWindowRect", {"width": 1280, "height": 900})
-    ff.cmd("WebDriver:Navigate", {"url": url})
+    ff.ventana(1280, 900)
+    ff.ir(url)
     ff.esperar("document.readyState=='complete'")
     ff.js("return document.fonts.ready.then(function(){return 1});")
     if not ff.esperar(PAGINADO, maximo=maximo):
         raise SystemExit(f"Paged.js no termino de armar las hojas de {html}")
     hojas = ff.js(HOJAS)
-    r = ff.cmd("WebDriver:Print", OPCIONES)
+    datos = ff.pdf()
     os.makedirs(os.path.dirname(os.path.abspath(pdf)), exist_ok=True)
     with open(pdf, "wb") as f:
-        f.write(base64.b64decode(r["value"]))
+        f.write(datos)
     return hojas
 
 
 def poner_titulo(pdf, titulo):
     """Pone el titulo del PDF (metadato Title) y borra el resto de los metadatos que
-    agrega Firefox. PyMuPDF solo se usa para esto."""
+    agrega el navegador. PyMuPDF solo se usa para esto."""
     import pymupdf
     tmp = pdf + ".tmp"
     with pymupdf.open(pdf) as doc:
@@ -120,7 +117,7 @@ def entregar(html, carpeta, base, salida="html+pdf", ff=None, espejo=None):
     if "pdf" in salida:
         pdf = os.path.join(carpeta, base + ".pdf")
         if ff is None:
-            with Firefox("claro") as f:
+            with Navegador("claro") as f:
                 hojas = imprimir(f, html, pdf)
         else:
             hojas = imprimir(ff, html, pdf)
@@ -143,7 +140,7 @@ def pdf_de(html, forzar=False, ff=None):
     if not forzar and os.path.exists(pdf) and os.path.exists(meta) and os.path.getmtime(pdf) >= os.path.getmtime(html):
         return pdf, json.load(open(meta, encoding="utf-8"))["hojas"]
     if ff is None:
-        with Firefox("claro") as f:
+        with Navegador("claro") as f:
             hojas = imprimir(f, html, pdf)
     else:
         hojas = imprimir(ff, html, pdf)
@@ -153,9 +150,9 @@ def pdf_de(html, forzar=False, ff=None):
 
 
 def pdfs_de(htmls, forzar=False):
-    """Varias piezas con una sola sesion de Firefox: {html: (pdf, hojas)}."""
+    """Varias piezas con una sola sesion del navegador: {html: (pdf, hojas)}."""
     out = {}
-    with Firefox("claro") as ff:
+    with Navegador("claro") as ff:
         for h in htmls:
             out[h] = pdf_de(h, forzar=forzar, ff=ff)
     return out
@@ -183,7 +180,7 @@ if __name__ == "__main__":
             print(f"{h}: {n} hojas -> {pdf}")
     elif a:
         if len(a) > 1:
-            with Firefox("claro") as f:
+            with Navegador("claro") as f:
                 n = imprimir(f, a[0], a[1])
             poner_titulo(a[1], os.path.splitext(os.path.basename(a[1]))[0])
             print(f"{a[0]}: {n} hojas -> {a[1]}")
