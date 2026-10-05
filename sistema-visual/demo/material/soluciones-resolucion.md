@@ -74,19 +74,19 @@ c. **Tasa de variación total.** Se suman los cambios en valor absoluto:
 ::: {.ejercicio n=3}
 Se leen de la gráfica los puntos $P = (2{,}00\ \text{min};\ 14{,}0\ \text{L})$ y $Q = (10{,}0\ \text{min};\ 46{,}0\ \text{L})$.
 
-   $$\bar{r} = \dfrac{V_{Q} - V_{P}}{t_{Q} - t_{P}} = \dfrac{46{,}0\ \text{L} - 14{,}0\ \text{L}}{10{,}0\ \text{min} - 2{,}00\ \text{min}}$$
+$$\bar{r} = \dfrac{V_{Q} - V_{P}}{t_{Q} - t_{P}} = \dfrac{46{,}0\ \text{L} - 14{,}0\ \text{L}}{10{,}0\ \text{min} - 2{,}00\ \text{min}}$$
 
-   ::: resultado
-   $\bar{r} = 4{,}00\ \frac{\text{L}}{\text{min}}$
-   :::
+::: resultado
+$\bar{r} = 4{,}00\ \frac{\text{L}}{\text{min}}$
+:::
 
 Como la gráfica es una recta, la tasa es la misma en todo el intervalo y el volumen a los 6,00 min se obtiene desde P:
 
-   $$V = V_{P} + \bar{r}\,(t - t_{P}) = 14{,}0\ \text{L} + 4{,}00\ \frac{\text{L}}{\text{min}} \cdot 4{,}00\ \text{min}$$
+$$V = V_{P} + \bar{r}\,(t - t_{P}) = 14{,}0\ \text{L} + 4{,}00\ \frac{\text{L}}{\text{min}} \cdot 4{,}00\ \text{min}$$
 
-   ::: resultado
-   $V = 30{,}0\ \text{L}$
-   :::
+::: resultado
+$V = 30{,}0\ \text{L}$
+:::
 
 ::: errata
 Del original, que se mantuvo: el enunciado escribe los decimales con punto.

@@ -5,7 +5,7 @@ Las mejoras son bienvenidas. Este proyecto tiene una persona responsable (`@Nico
 ## Cómo proponer un cambio
 1. Hacé un fork del repositorio y creá una rama con un nombre descriptivo.
 2. Hacé el cambio. Mantenelo acotado: un tema por pull request.
-3. Si tocaste `sistema-visual/`, corré `python sistema-visual/construir.py` (necesita Pandoc 3.8 o superior y Firefox; ver `MANUAL-DE-IMPLEMENTACION.md`) y confirmá que las reglas siguen pasando. Si no pudiste correrlo, decilo en el pull request.
+3. Si tocaste `sistema-visual/`, corré `python sistema-visual/construir.py` (necesita Pandoc 3.8 o superior y un navegador; ver `MANUAL-DE-IMPLEMENTACION.md`) y confirmá que las reglas siguen pasando. Si no pudiste correrlo, decilo en el pull request.
 4. Abrí el pull request y completá la plantilla.
 5. Puede haber preguntas o pedidos de ajuste. La decisión final es de quien mantiene el proyecto, que puede aceptar, pedir cambios o rechazar con una explicación.
 

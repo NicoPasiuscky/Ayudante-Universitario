@@ -1,4 +1,4 @@
-"""capturas.py - todas las capturas de verificacion del sistema v4, con Firefox
+"""capturas.py - todas las capturas de verificacion del sistema v4, con el navegador
 sin interfaz (herramientas/captura_espera.py). Los margenes de la hoja impresa
 (regla 22) ya no salen de aca: los mide verificar_margenes.py sobre los PDF que
 imprime imprimir_a4.py.
@@ -39,7 +39,7 @@ sys.dont_write_bytecode = True
 AQUI = os.path.dirname(os.path.abspath(__file__))
 RAIZ = os.path.dirname(AQUI)
 sys.path.insert(0, AQUI)
-from captura_espera import Firefox  # noqa: E402
+from captura_espera import Navegador  # noqa: E402
 import verificar_margenes as vm  # noqa: E402
 import pymupdf  # noqa: E402
 from PIL import Image, ImageOps  # noqa: E402
@@ -60,10 +60,12 @@ def k(n):
 PAGINADO = "document.documentElement.dataset.paginado=='1'"
 EMPEZAR = "document.getElementById('btnStart').click();"
 PARCIAL = "document.querySelector('input[name=modo][value=parcial]').click();"
+# El orden de las preguntas es aleatorio: la primera puede no tener opciones para marcar (respuesta numerica, menus)
+MARCAR_UNA = "var op=document.querySelectorAll('#qOptions input');if(op[1]){op[1].click();}"
 PARCIAL_1MIN = (PARCIAL + "var i=document.getElementById('minLibre');i.value='1';"
                 "i.dispatchEvent(new Event('input'));" + EMPEZAR +
-                "document.querySelectorAll('#qOptions input')[1].click();")
-MARCAR = EMPEZAR + "document.querySelectorAll('#qOptions input')[1].click();"
+                MARCAR_UNA)
+MARCAR = EMPEZAR + MARCAR_UNA
 CONFIRMAR = MARCAR + "document.getElementById('btnFinish').click();"
 # Responde con errores de los tres tipos: una incorrecta, una seleccion
 # multiple incompleta y una sin responder
@@ -71,7 +73,7 @@ RESOLVER = (EMPEZAR +
             "var n=document.querySelectorAll('.navdot').length;"
             "for(var i=0;i<n;i++){var o=document.querySelectorAll('#qOptions input');"
             " var tipo=document.getElementById('qTypeBadge').textContent;"
-            " if(i<n-1){ if(tipo=='selección múltiple'){o[0].click();} else {o[(i+1)%o.length].click();} }"
+            " if(i<n-1){ if(tipo=='selección múltiple'){if(o[0]){o[0].click();}} else if(o.length){o[(i+1)%o.length].click();} }"
             " document.getElementById('btnNext').click();}"
             "document.getElementById('btnFinish').click();"
             "if(!document.getElementById('confirmModal').hidden) document.getElementById('btnModalConfirm').click();")
@@ -115,7 +117,7 @@ def gris(nombre):
 
 def solo_indice():
     """Despues de reconstruir indice.html con las miniaturas nuevas."""
-    with Firefox("claro") as ff:
+    with Navegador("claro") as ff:
         ff.capturar(os.path.join(RAIZ, "indice.html"), k("indice-escritorio.png"), 1280, 900)
         ff.capturar(os.path.join(RAIZ, "indice.html"), k("indice-celular.png"), 390, 844, celular=True)
 
@@ -206,7 +208,7 @@ def medir_diapositivas(medidas):
     """Regla 24 (nada desborda en los tres tamanos) y 25 (letra minima y contraste)."""
     res = {}
     for tema in ("claro", "oscuro"):
-        with Firefox(tema) as ff:
+        with Navegador(tema) as ff:
             for modo in ("extenso", "corto"):
                 for nombre, w, h in TAMANOS:
                     if tema == "oscuro" and nombre != "escritorio":
@@ -220,12 +222,12 @@ def capturar_diapositivas():
     celular vertical y horizontal y la vista general."""
     ext, cor = d("resumen-extenso-diapositivas.html"), d("resumen-corto-diapositivas.html")
     ir = lambda n: f"window.location.hash='{n}';"  # noqa: E731
-    with Firefox("claro") as ff:
+    with Navegador("claro") as ff:
         ff.capturar(ext, k("diapositivas-portada.png"), 1280, 720, completa=False, celular=True, guion=ir(1))
         ff.capturar(ext, k("diapositivas-escritorio-claro.png"), 1280, 720, completa=False, celular=True, guion=ir(6))
         ff.capturar(cor, k("diapositivas-celular-vertical.png"), 390, 844, completa=False, celular=True, guion=ir(6))
         ff.capturar(cor, k("diapositivas-celular-horizontal.png"), 844, 390, completa=False, celular=True, guion=ir(5))
-    with Firefox("oscuro") as ff:
+    with Navegador("oscuro") as ff:
         ff.capturar(ext, k("diapositivas-escritorio-oscuro.png"), 1280, 720, completa=False, celular=True,
                     guion=ir(9) + "setTimeout(function(){document.querySelector('.diapositiva[data-activa] summary').click();},300);",
                     pausa_guion=1.2)
@@ -268,7 +270,7 @@ def capturar_material(ff, medidas):
 
 def main():
     medidas = {}
-    with Firefox("claro") as ff:
+    with Navegador("claro") as ff:
         ff.capturar(d("resumen-extenso-completo.html"), k("resumen-completo-extenso-escritorio.png"), 1280, 900)
         medidas["completo, compu"] = ff.js(MEDIR)
         ff.capturar(d("resumen-corto-completo.html"), k("resumen-completo-corto-celular.png"), 390, 844, celular=True)
@@ -278,7 +280,7 @@ def main():
         # Boton: con el sistema en claro, se elige oscuro y se recarga (se recuerda)
         ff.capturar(d("resumen-extenso-completo.html"), k("resumen-boton-oscuro.png"), 1280, 900, completa=False,
                     guion="document.getElementById('temaBoton').click();")
-        ff.cmd("WebDriver:Refresh", {})
+        ff.recargar()
         ff.esperar("document.readyState=='complete'")
         medidas["boton: tema recordado despues de recargar"] = ff.js("return document.documentElement.getAttribute('data-theme');")
         ff.js("try{localStorage.removeItem('estudio-v4-tema')}catch(e){} return 1;")
@@ -286,7 +288,7 @@ def main():
                     guion="document.querySelector('.practica').scrollIntoView(); window.scrollBy(0,-120);")
         ff.capturar(os.path.join(RAIZ, "indice.html"), k("indice-escritorio.png"), 1280, 900)
         ff.capturar(os.path.join(RAIZ, "indice.html"), k("indice-celular.png"), 390, 844, celular=True)
-    with Firefox("oscuro") as ff:
+    with Navegador("oscuro") as ff:
         ff.capturar(d("resumen-extenso-completo.html"), k("resumen-completo-extenso-oscuro.png"), 1280, 900)
         ff.capturar(d("cuestionario.html"), k("cuestionario-inicio.png"), 1280, 1280, completa=False, guion=PARCIAL)
         ff.capturar(d("cuestionario.html"), k("cuestionario-pregunta.png"), 1280, 860, completa=False, guion=MARCAR)
@@ -323,7 +325,7 @@ def solo_impresion():
     verificar_margenes.py sobre los PDF de imprimir_a4.py."""
     ruta = k("medidas.json")
     medidas = json.load(open(ruta, encoding="utf-8")) if os.path.exists(ruta) else {}
-    with Firefox("claro") as ff:
+    with Navegador("claro") as ff:
         a4_de(ff, "resumen-extenso-a4.html", "resumen-a4-extenso", "", medidas)
         a4_de(ff, "resumen-corto-a4.html", "resumen-a4-corto", " corto", medidas)
         capturar_material(ff, medidas)

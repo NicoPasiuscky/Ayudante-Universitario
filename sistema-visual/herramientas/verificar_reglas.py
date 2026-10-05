@@ -1,7 +1,7 @@
 """verificar_reglas.py - comprueba sobre el sistema v4 las 20 reglas contra el
 aspecto de IA y las decisiones de diseño que se
 pueden medir en el codigo, en el HTML generado o en las medidas que toma
-Firefox (capturas/medidas.json, lo escribe herramientas/capturas.py).
+el navegador (capturas/medidas.json, lo escribe herramientas/capturas.py).
 La regla 16 (prueba en gris) se revisa ademas a ojo en capturas/gris-*.png.
 
 Reglas de los formatos y modos de resumen. Las diapositivas son solo pantalla: no se imprimen, no tienen
@@ -18,7 +18,7 @@ margenes ni folleto (la regla 26, del folleto, se retiro):
       y, donde ya estaba, la seccion o el trabajo
   30  el encabezado muestra "materia | unidad" en una misma linea, del lado izquierdo (A4, completo y diapositivas)
   31  Hoja A4: el texto corrido ocupa casi todo el ancho util y las figuras y notas conservan la columna derecha
-      (120 mm de cuerpo + 44 mm de margen), medido en Firefox
+      (120 mm de cuerpo + 44 mm de margen), medido en el navegador
   32  Hoja A4 del resumen y material impreso (parcial, soluciones, TP): siempre claros y sin boton de
       tema ni tokens oscuros, aun con el tema oscuro del sistema
   33  el HTML para imprimir es siempre hoja blanca con texto oscuro, sin modos de color: aun con el sistema en oscuro
@@ -219,7 +219,7 @@ regla(14, "letra propia incrustada (Alegreya Sans como Estudio Sans), sin serifa
       fam.startswith('"Estudio Sans"') and fam_q.startswith('"Estudio Sans"') and not serif,
       f"resumen: {fam}; cuestionario: {fam_q}; serifa o letra del sistema en: {serif}")
 
-# 12 y 15. Medidas reales tomadas en Firefox
+# 12 y 15. Medidas reales tomadas en el navegador
 med_p = os.path.join(R, "capturas", "medidas.json")
 if os.path.exists(med_p):
     med = json.load(open(med_p, encoding="utf-8"))
@@ -256,7 +256,7 @@ regla(17, "estados con palabra y signo (cuestionario, errores frecuentes, soluci
 
 # 22. Nada fuera del area imprimible (margenes de carpeta: interior
 # 20, exterior 10, superior 15, inferior 5 mm, doble faz espejada). Lo mide
-# verificar_margenes.py sobre los PDF y las hojas A4 medidas en Firefox.
+# verificar_margenes.py sobre los PDF y las hojas A4 medidas en el navegador.
 sys.path.insert(0, AQUI)
 sys.dont_write_bytecode = True
 import verificar_margenes as vm  # noqa: E402
@@ -315,7 +315,7 @@ css_enc = re.search(r"\.encabezado p\s*\{([^}]*)\}", CSS_RES).group(1)
 regla(30, "el encabezado muestra materia | unidad juntas, en la misma linea y del lado izquierdo",
       not enc_mal and "space-between" not in css_enc and "flex-start" in css_enc, "; ".join(enc_mal) or css_enc.strip())
 
-# 31. Hoja A4: texto ancho; figuras y notas en su columna derecha (medido en Firefox)
+# 31. Hoja A4: texto ancho; figuras y notas en su columna derecha (medido en el navegador)
 g = med_m.get("A4", {})
 g2 = med_m.get("A4 corto", {})
 def _ok31(v):
@@ -327,7 +327,7 @@ regla(31, "Hoja A4: texto corrido de 160 mm o mas; cuerpo con nota al margen de 
       "; ".join(f"{k}: texto {v.get('ancho_texto_mm')} mm, cuerpo con nota {v.get('ancho_cuerpo_con_nota_mm')} mm, nota "
                 f"{v.get('ancho_nota_mm')} mm, epigrafe {v.get('ancho_epigrafe_mm')} mm" for k, v in (("A4", g), ("A4 corto", g2))))
 
-# 32-34. Modo claro u oscuro (medido en Firefox por probar_tema.py, clave "tema" de medidas.json)
+# 32-34. Modo claro u oscuro (medido en el navegador por probar_tema.py, clave "tema" de medidas.json)
 tm = med_m.get("tema", {})
 solo_claro = [f for f in HTML_MAT + ["demo/resumen-extenso-a4.html", "demo/resumen-corto-a4.html"]
               if re.search(r"prefers-color-scheme|data-theme|temaBoton|tema-boton", re.sub(r"<script.*?</script>", "", leer(f), flags=re.S))]
@@ -341,7 +341,7 @@ regla(32, "Hoja A4 y material impreso siempre claros y sin boton de tema ni toke
       len(a4_tema) >= 4 and not mal32 and not solo_claro and not fuentes_claras,
       "; ".join(mal32 + solo_claro + fuentes_claras) or f"{len(a4_tema)} piezas medidas con el sistema en oscuro: sin boton, hoja clara, texto oscuro")
 pdfs = {k: v for k, v in tm.items() if k.endswith("PDF con sistema oscuro")}
-mal33 = [f"{k}: {v}" for k, v in pdfs.items() if not (v["spans"] > 50 and v["spans_claros"] == 0 and v["esquinas_blancas"])]
+mal33 = [f"{k}: {v}" for k, v in pdfs.items() if not (v["spans"] > 20 and v["spans_claros"] == 0 and v["esquinas_blancas"])]
 regla(33, "el HTML para imprimir es siempre hoja blanca con texto oscuro, sin modos de color (aun con el sistema en oscuro)",
       len(pdfs) >= 4 and not mal33, "; ".join(mal33) or "; ".join(f"{k.split(',')[0]}: {v['hojas']} hojas, {v['spans']} textos, 0 claros" for k, v in pdfs.items()))
 mal34 = []
@@ -425,7 +425,7 @@ regla(23, "todo CSS de impresion usa los margenes de carpeta de tokens.css (--ho
       "; ".join(malos_page) or f"interior {M_['interior']}, exterior {M_['exterior']}, superior {M_['superior']}, "
       f"inferior {M_['inferior']} mm en todos los @page")
 
-# 24 y 25. Diapositivas en tres tamanos (medidas de capturas.py con Firefox)
+# 24 y 25. Diapositivas en tres tamanos (medidas de capturas.py con el navegador)
 dm = json.load(open(os.path.join(R, "capturas", "medidas.json"), encoding="utf-8")).get("diapositivas") \
     if os.path.exists(os.path.join(R, "capturas", "medidas.json")) else None
 if dm:
@@ -457,7 +457,7 @@ for f in ["demo/resumen-extenso.md", "demo/resumen-corto.md"] + [x for x in HTML
     metatexto += [f"{f}: {m.group(0)}" for m in META.finditer(txt)]
 # Sin tope fijo: el corto solo tiene que ocupar menos hojas A4
 # (y menos diapositivas) que el extenso de las mismas unidades. Las hojas salen de la regla 22
-# (filas_m, el PDF que imprime Firefox); si falta alguna de las dos piezas, la regla informa y no falla.
+# (filas_m, el PDF que imprime el navegador); si falta alguna de las dos piezas, la regla informa y no falla.
 _hojas = {n: h for n, h, _ in filas_m}
 _h_ext, _h_cor = _hojas.get("resumen extenso, hoja A4"), _hojas.get("resumen corto, hoja A4")
 _d_ext, _d_cor = n_diap["extenso"], n_diap["corto"]

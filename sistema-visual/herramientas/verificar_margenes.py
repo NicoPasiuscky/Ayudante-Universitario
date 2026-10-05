@@ -16,7 +16,7 @@ que muchas impresoras imprimen bien).
 
 Salidas medidas:
   - Todas las hojas A4 (Paged.js): herramientas/imprimir_a4.py imprime cada HTML a
-    PDF con Firefox (al directorio temporal, con cache: solo reimprime lo que
+    PDF con el navegador (al directorio temporal, con cache: solo reimprime lo que
     cambio) y aca se mide ese PDF con PyMuPDF (get_text("rawdict"),
     get_drawings, get_image_info): resumen extenso y corto en hoja A4, parcial
     digitalizado, las dos hojas de soluciones y el TP. Ese
@@ -45,6 +45,7 @@ MARGEN = {"interior": _mg.MM["interior"], "exterior": _mg.MM["exterior"],
           "arriba": _mg.MM["superior"], "abajo": _mg.MM["inferior"]}
 CABEZA_MIN = 5.0          # mm desde el borde superior para la cabeza de hoja
 TOL = 0.1                 # mm de tolerancia de medicion
+TOL_LIBREOFFICE = 1.0     # un .docx exportado con LibreOffice coloca la cabeza de hoja distinto que Word (hasta ~1 mm)
 # (nombre, HTML A4 relativo a v4/): se imprimen con imprimir_a4.py
 HTML_A4 = [("resumen extenso, hoja A4", "demo/resumen-extenso-a4.html"),
            ("resumen corto, hoja A4", "demo/resumen-corto-a4.html"),
@@ -102,34 +103,35 @@ def cajas_pdf(pg):
 
 def medir_pdf(ruta, con_cabeza, hojas_esperadas=None, espejo=True):
     doc = pymupdf.open(ruta)
+    tol = TOL_LIBREOFFICE if "libreoffice" in (doc.metadata.get("producer") or "").lower() else TOL
     hojas = []
     for i, pg in enumerate(doc):
         W, H = pg.rect.width, pg.rect.height
         cuerpo, cabeza = [], []
         for tipo, r in cajas_pdf(pg):
             dist = {"izq": r.x0 / MM, "der": (W - r.x1) / MM, "arr": r.y0 / MM, "aba": (H - r.y1) / MM}
-            if con_cabeza and r.y1 / MM <= MARGEN["arriba"] + TOL:
+            if con_cabeza and r.y1 / MM <= MARGEN["arriba"] + tol:
                 cabeza.append(dist)
             else:
                 cuerpo.append(dist)
-        hojas.append(resumir(i, cuerpo, cabeza, espejo))
+        hojas.append(resumir(i, cuerpo, cabeza, espejo, tol))
     if hojas_esperadas is not None and len(doc) != hojas_esperadas:
         hojas[0]["fallas"].append(f"el PDF tiene {len(doc)} hojas y Paged.js armó {hojas_esperadas}")
     doc.close()
     return hojas
 
 
-def resumir(i, cuerpo, cabeza, espejo=True):
+def resumir(i, cuerpo, cabeza, espejo=True, tol=TOL):
     izq, der = limites(i, espejo)
     m = {k: round(min((d[k] for d in cuerpo), default=99), 1) for k in ("izq", "der", "arr", "aba")}
     c = {k: round(min((d[k] for d in cabeza), default=99), 1) for k in ("izq", "der", "arr")}
     fallas = []
     for k, lim in (("izq", izq), ("der", der), ("arr", MARGEN["arriba"]), ("aba", MARGEN["abajo"])):
-        if m[k] < lim - TOL:
+        if m[k] < lim - tol:
             fallas.append(f"hoja {i + 1}: contenido a {m[k]} mm del borde {k} (margen {lim})")
     if cabeza:
         for k, lim in (("izq", izq), ("der", der), ("arr", CABEZA_MIN)):
-            if c[k] < lim - TOL:
+            if c[k] < lim - tol:
                 fallas.append(f"hoja {i + 1}: cabeza a {c[k]} mm del borde {k} (minimo {lim})")
     return {"hoja": i + 1, "cuerpo": m, "cabeza": c if cabeza else None, "fallas": fallas, "espejo": espejo}
 
@@ -152,7 +154,7 @@ def minimos(hojas):
 
 def sin_espejo():
     """Arma en el temporal las piezas A4 con margenes iguales (-M espejo=false) y las imprime con
-    Firefox: [(nombre, html, hojas, pdf)]. No toca demo/."""
+    Navegador: [(nombre, html, hojas, pdf)]. No toca demo/."""
     import tempfile
     sys.path.insert(0, R)
     import construir as c
@@ -172,7 +174,7 @@ def sin_espejo():
          lambda o: c.tp(c.r("docx", "demo", "tp-demo.md"), o, datos=c.r("docx", "demo", "tp-demo.json"), espejo=False)),
     ]
     out = []
-    with imprimir_a4.Firefox("claro") as ff:
+    with imprimir_a4.Navegador("claro") as ff:
         for nombre, archivo, f in armar:
             h = os.path.join(t, archivo)
             f(h)
@@ -188,7 +190,7 @@ def verificar():
     """Devuelve (filas de la tabla, fallas, piezas sin medir)."""
     filas, fallas, faltan = [], [], []
     piezas = []
-    import imprimir_a4  # noqa: E402  (necesita Firefox; solo reimprime lo que cambio)
+    import imprimir_a4  # noqa: E402  (necesita un navegador; solo reimprime lo que cambio)
     existentes = [(n, h) for n, h in HTML_A4 if os.path.exists(os.path.join(R, h))]
     faltan += [n for n, h in HTML_A4 if not os.path.exists(os.path.join(R, h))]
     hechos = imprimir_a4.pdfs_de([h for _, h in existentes]) if existentes else {}

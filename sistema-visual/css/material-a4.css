@@ -10,7 +10,7 @@
                         ver incluir/espejo.lua; sin esto, doble faz espejada)
      --include-after-body=incluir/formulas-rectas.html
    El mecanismo de hoja es el del resumen A4 (Paged.js, mismos tokens y
-   Alegreya Sans); el PDF es este HTML impreso con Firefox (A4, margenes "Ninguno", escala 100 %, sin
+   Alegreya Sans); el PDF es este HTML impreso con el navegador (A4, margenes "Ninguno", escala 100 %, sin
    encabezados ni pies, con fondos) o con herramientas/imprimir_a4.py.
 
    Doble faz con los margenes de carpeta (tokens.css, --hoja-*):

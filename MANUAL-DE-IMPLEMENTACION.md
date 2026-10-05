@@ -25,7 +25,7 @@ Una pauta orientativa (es una estimación, no una medición): para la conversaci
 |---|---|---|---|
 | Python | 3.10 o superior | Todas las herramientas | No funciona nada de la generación |
 | Pandoc | 3.8 o superior | Markdown a HTML y Word | No hay documentos |
-| Firefox | reciente | PDF de la Hoja A4, capturas, medidas, figuras del Word | Solo HTML y diapositivas; sin PDF ni Word con figuras |
+| Un navegador: Firefox, Chrome, Edge, Brave, Chromium u otro basado en Chromium | reciente | PDF de la Hoja A4, capturas, medidas, figuras del Word | Solo HTML y diapositivas; sin PDF ni Word con figuras |
 | Bibliotecas de Python | ver `requirements.txt` | PDF, cálculo, gráficos, Word | Funciones parciales |
 | Graphviz | cualquiera | Diagramas grandes | Se usan SVG a mano |
 | Java + `plantuml.jar` | Java 11 o superior | Diagramas UML formales | Se usan SVG a mano |
@@ -43,20 +43,18 @@ Descargá o cloná el repositorio en una carpeta tuya (no hace falta que sea la 
 ```
 winget install --id Python.Python.3.12 -e
 winget install --id JohnMacFarlane.Pandoc -e
-winget install --id Mozilla.Firefox -e
 winget install --id Graphviz.Graphviz -e
 winget install --id Microsoft.OpenJDK.21 -e
 ```
 **macOS** (con Homebrew):
 ```
 brew install python pandoc graphviz openjdk
-brew install --cask firefox
 ```
 **Linux (Debian y Ubuntu)**:
 ```
-sudo apt install python3 python3-pip firefox graphviz default-jre
+sudo apt install python3 python3-pip graphviz default-jre
 ```
-En Ubuntu, Firefox puede venir como paquete `snap`; funciona, aunque en algunos sistemas conviene definir `ESTUDIO_FIREFOX` (ver 2.4). **Pandoc**: los repositorios de las distribuciones suelen traer una versión vieja (la 3.8 es el mínimo). Descargá la última desde `pandoc.org/installing.html`, o instalá la biblioteca que la trae incluida: `pip install pypandoc_binary` y después `python -c "import pypandoc; print(pypandoc.get_pandoc_path())"` te da la ruta, que guardás en `ESTUDIO_PANDOC`.
+**Navegador**: no hace falta instalar ninguno si ya usás Firefox, Chrome, Edge (viene con Windows), Brave u otro basado en Chromium; el proyecto detecta el que haya (sección 2.5). Si no tenés ninguno, instalá el que prefieras. Los navegadores instalados como paquete `snap` o `flatpak` a veces no permiten el modo de control remoto: si falla, instalá otra copia o definí `ESTUDIO_NAVEGADOR`. **Pandoc**: los repositorios de las distribuciones suelen traer una versión vieja (la 3.8 es el mínimo). Descargá la última desde `pandoc.org/installing.html`, o instalá la biblioteca que la trae incluida: `pip install pypandoc_binary` y después `python -c "import pypandoc; print(pypandoc.get_pandoc_path())"` te da la ruta, que guardás en `ESTUDIO_PANDOC`.
 
 **PlantUML** (opcional): bajá `plantuml.jar` vos mismo desde la página oficial de lanzamientos de PlantUML y guardalo en una carpeta tuya; creá un acceso (`plantuml.cmd` en Windows o un script `plantuml` en macOS y Linux) que ejecute `java -jar <ruta>/plantuml.jar %*`. Es una descarga que conviene hacer a mano: no pidas que la IA baje ejecutables.
 
@@ -72,12 +70,25 @@ Casi siempre se encuentran solos. Para comprobarlo:
 ```
 python sistema-visual/estudio.py entorno
 ```
-Muestra qué encontró de Pandoc, Firefox y LibreOffice. Si algo aparece como `NO ENCONTRADO` pero está instalado, definí la variable de entorno que corresponde, con la ruta completa del programa:
+Muestra qué encontró de Pandoc, del navegador y de LibreOffice. Si algo aparece como `NO ENCONTRADO` pero está instalado, definí la variable de entorno que corresponde, con la ruta completa del programa:
 - `ESTUDIO_PANDOC` para Pandoc
-- `ESTUDIO_FIREFOX` para Firefox
+- `ESTUDIO_NAVEGADOR` para el navegador (ruta completa, o el nombre si está en el PATH)
 - `ESTUDIO_SOFFICE` para LibreOffice
 
 En Windows: `setx ESTUDIO_PANDOC "C:\ruta\pandoc.exe"` y abrir una terminal nueva. En macOS y Linux: agregar `export ESTUDIO_PANDOC=/ruta/pandoc` al perfil de tu terminal.
+
+### 2.5 Qué navegadores sirven
+El proyecto usa un navegador sin interfaz para cuatro tareas: sacar el PDF de la Hoja A4, tomar capturas, medir las páginas (las reglas de verificación) y dibujar los gráficos de los `.docx`. Funciona con:
+
+| Navegador | Cómo se controla | Estado |
+|---|---|---|
+| Firefox | Protocolo Marionette | Probado |
+| Chrome, Chromium, Edge, Brave, Opera, Vivaldi y otros basados en Chromium | Protocolo de depuración remota (CDP), con un cliente propio: no hay que instalar nada más | Probado con Chromium |
+| Safari, GNOME Web, Orion y otros sin modo sin interfaz | No se pueden automatizar | No compatibles para PDF y capturas |
+
+La elección es automática: si hay Firefox, lo usa; si no, el primer navegador basado en Chromium que encuentre (Chrome, Chromium, Edge, Brave, Opera, Vivaldi). Para forzar uno, definí `ESTUDIO_NAVEGADOR` con su ruta o su nombre. Comprobación rápida: `python sistema-visual/herramientas/navegador.py` abre el navegador elegido, carga una página y muestra si pudo medirla, capturarla e imprimirla. Con Safari o sin ningún navegador automatizable seguís pudiendo generar y leer los HTML (se ven en cualquier navegador moderno), y el PDF se saca a mano con Imprimir; solo las reglas de medidas de `verificar_reglas.py` quedan «sin medir».
+
+Una diferencia a tener en cuenta: cada motor dibuja con pequeñas diferencias (décimas de milímetro). Las reglas de márgenes y de ancho de texto se calibraron con Firefox; con otro motor un valor puede quedar justo en el límite.
 
 ## 3. Conectar el proyecto con tu IA
 Detalle completo en `adaptadores/LEEME.md`. En resumen:
@@ -121,13 +132,13 @@ Pedile a la IA: «Agregá a `apoyo/estandares-por-area.md` el área de [tu área
 Regla de oro para cualquier cambio de reglas: se escribe en estos archivos, no solo en la memoria de la herramienta de IA, así vale con cualquier modelo y viaja con el proyecto.
 
 ## 5. Verificar la instalación
-1. `python sistema-visual/estudio.py entorno`: Python y Pandoc tienen que aparecer; Firefox, si querés PDF y Word.
+1. `python sistema-visual/estudio.py entorno`: Python y Pandoc tienen que aparecer; también un navegador, si querés PDF y Word.
 2. Generar un documento de prueba, con el contenido de demostración incluido:
    ```
    python sistema-visual/estudio.py resumen sistema-visual/demo/resumen-corto.md --formato completo --modo corto --carpeta trabajo/prueba
    ```
    Abrí el `.html` que crea en `trabajo/prueba/`: tiene que verse un resumen con fórmulas, tablas y botón «Modo oscuro».
-3. Prueba completa del sistema (necesita Firefox, tarda unos minutos):
+3. Prueba completa del sistema (necesita un navegador, tarda unos minutos):
    ```
    python sistema-visual/construir.py
    ```
@@ -155,7 +166,9 @@ Es más manual, pero produce los mismos documentos.
 ## 8. Si algo falla
 | Síntoma | Causa probable | Qué hacer |
 |---|---|---|
-| `No se encontro Firefox` | Firefox no instalado o en un lugar raro | Instalarlo o definir `ESTUDIO_FIREFOX` |
+| `No se encontro ningun navegador compatible` | Ninguno instalado o en un lugar raro | Instalar uno o definir `ESTUDIO_NAVEGADOR` |
+| `El navegador no respondio (protocolo de depuracion)` | Navegador empaquetado como snap o flatpak, o una opción de empresa que bloquea el control remoto | Probar con otro navegador (`ESTUDIO_NAVEGADOR`) |
+| Algún valor de las reglas de medidas queda justo en el límite | Cada motor dibuja con diferencias de décimas | Repetir con el otro motor; la medida de referencia fue Firefox |
 | `Unknown option --math-method` | Pandoc viejo | El sistema ya elige `--mathml`; si falla otra opción, actualizar Pandoc a 3.8 o más |
 | `Unknown option --syntax-highlighting` | Pandoc anterior a 3.8 | Actualizar Pandoc |
 | `attempt to call a nil value (field 'TableBody')` | Pandoc muy viejo en el filtro de Word | Actualizar Pandoc |

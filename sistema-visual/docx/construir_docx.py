@@ -8,7 +8,7 @@ Una sola orden arma el .docx completo, para todos los tipos de documento: el MIS
   --tipo soluciones  hoja de resultados o de resolucion; docx-material.lua
 
   1. (tp) Caratula desde un JSON (modelo habitual; campos vacios = a completar).
-  2. Los SVG del Markdown pasan a PNG de 300 a 500 ppp con Firefox (Word no dibuja
+  2. Los SVG del Markdown pasan a PNG de 300 a 500 ppp con el navegador (Word no dibuja
      SVG con CSS), en la carpeta temporal.
   3. Pandoc con el reference-*.docx del perfil (estilos v4) y el filtro del tipo.
   4. Post-proceso: formulas OMML en letra recta (m:sty p) y cocientes apilados,
@@ -1468,7 +1468,7 @@ PNG_ANCHO = 2400                     # px; a 11,4 cm de ancho son unos 535 ppp
 
 
 def svg_a_png(ff, svg, png, trabajo, ancho=PNG_ANCHO):
-    """Dibuja el SVG con Firefox sin interfaz (Marionette, ver herramientas/captura_espera.py),
+    """Dibuja el SVG con navegador sin interfaz (ver herramientas/navegador.py),
     con la letra y los colores de la pagina (currentColor, var(--azul), Alegreya Sans con
     cifras de caja alta), y guarda la captura del elemento <svg> sobre fondo blanco."""
     import base64
@@ -1492,16 +1492,15 @@ def svg_a_png(ff, svg, png, trabajo, ancho=PNG_ANCHO):
     pagina = os.path.join(trabajo, os.path.basename(png) + ".html")
     with open(pagina, "w", encoding="utf-8") as f:
         f.write(html)
-    ff.cmd("WebDriver:SetWindowRect", {"width": ancho + 60, "height": alto + 260})
-    ff.cmd("WebDriver:Navigate", {"url": pathlib.Path(pagina).as_uri()})
+    ff.ventana(ancho + 60, alto + 260)
+    ff.ir(pathlib.Path(pagina).as_uri())
     ff.esperar("document.readyState=='complete'")
     ff.js("return document.fonts.ready.then(function(){return 1});")
     time.sleep(.6)
     # pagina completa (el elemento es mas alto que la ventana) y recorte exacto al <svg>
     from PIL import Image
     import io
-    r = ff.cmd("WebDriver:TakeScreenshot", {"full": True, "hash": False})
-    im = Image.open(io.BytesIO(base64.b64decode(r["value"]))).convert("RGB")
+    im = Image.open(io.BytesIO(ff.captura(completa=True))).convert("RGB")
     if im.size[0] < ancho or im.size[1] < alto:
         raise SystemExit(f"{svg}: la captura salio de {im.size} y hacen falta {ancho}x{alto}")
     im.crop((0, 0, ancho, alto)).save(png)
@@ -1522,7 +1521,7 @@ def preparar_md(md, trabajo):
     sys.path.insert(0, os.path.join(RAIZ, "herramientas"))
     import captura_espera
     hechos = {}
-    with captura_espera.Firefox() as ff:
+    with captura_espera.Navegador() as ff:
         for r in rutas:
             hechos[r] = svg_a_png(ff, r, os.path.join(trabajo, f"figura-{len(hechos) + 1}.png"), trabajo)
     nuevo = re.sub(r"\]\(([^)\s]+\.svg)\)",
