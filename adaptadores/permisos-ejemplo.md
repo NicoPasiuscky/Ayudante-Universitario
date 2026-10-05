@@ -44,7 +44,7 @@ Las rutas absolutas de Claude Code empiezan con `//` (por ejemplo `//home/ana/un
   }
 }
 ```
-Los nombres de la lista `deny` son una red de seguridad: los nombres de las carpetas de fuente cambian de una materia a otra, así que agregá los de tu universidad. La regla de fondo sigue siendo la de `INSTRUCCIONES.md`.
+No permitas de antemano `pip`, `winget`, `brew`, `apt` ni instaladores: el proyecto verifica las dependencias y pide tu permiso antes de instalar algo, y la herramienta de IA debería pedir confirmación en cada instalación. Los nombres de la lista `deny` son una red de seguridad: los nombres de las carpetas de fuente cambian de una materia a otra, así que agregá los de tu universidad. La regla de fondo sigue siendo la de `INSTRUCCIONES.md`.
 
 ## Otras herramientas
 Casi todas permiten limitar en qué carpetas puede escribir el agente, o pedir confirmación antes de cada escritura. Configurá lo mismo: escritura permitida solo en las carpetas de salida; ejecución de comandos limitada a `python`, `pandoc`, `dot` y `plantuml`. Si la herramienta no distingue carpetas, dejá activada la confirmación manual de escrituras y revisá cada ruta antes de aceptar.
