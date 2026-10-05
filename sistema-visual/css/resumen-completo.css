@@ -1,0 +1,15 @@
+/* ==========================================================================
+   resumen-completo.css - Formato "HTML completo" (sistema v4)
+   Carga: fuentes.html -> tokens -> resumen-base -> resumen-pantalla -> este.
+   Lectura en pantalla, sin aspecto de papel: compu (sangria, texto y margen),
+   tableta y celular (una columna, ver resumen-pantalla.css), con el boton de
+   modo claro u oscuro (incluir/tema.html). Indice: -M indice=true (lo arma
+   estudio.lua, con enlaces; solo en modo extenso).
+   ========================================================================== */
+body { padding: 3.4rem 1rem 5rem; }
+.formato-completo {
+  max-width: calc(var(--texto) + var(--sangria) + var(--margen) + var(--hueco));
+  margin: 0 auto;
+}
+@media (max-width: 42rem) { body { padding: 3.6rem 1.1rem 4rem; } }
+@media print { body { padding: 0; } }

@@ -1,0 +1,13 @@
+trabajo/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+# archivos de trabajo del sistema visual
+sistema-visual/demo/*.html
+sistema-visual/demo/*.pdf
+sistema-visual/docx/demo/*.docx
+sistema-visual/docx/demo/*.pdf
+sistema-visual/indice.html
+sistema-visual/capturas/
+sistema-visual/docx/capturas/

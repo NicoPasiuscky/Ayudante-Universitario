@@ -1,0 +1,18 @@
+{
+  "caratula": {
+    "encabezado": "Trabajo Práctico de laboratorio",
+    "numero": "",
+    "titulo": "Tasa de llenado de un tanque (demostración)",
+    "materia": "Materia de ejemplo",
+    "anio": "2026",
+    "curso": "",
+    "integrantes": [
+      {"nombre": "Apellido Nombre", "legajo": "00000"},
+      {"nombre": "Apellido Nombre", "legajo": "00000"}
+    ]
+  },
+  "cabecera": {
+    "materia": "Materia de ejemplo",
+    "trabajo": "Trabajo Práctico (demostración)"
+  }
+}
