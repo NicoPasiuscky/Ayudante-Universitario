@@ -27,7 +27,8 @@ Subcomandos:
       python sistema-visual/estudio.py nombre "Materia A" Resumen --unidades 1 2 3 --modo corto --formato "hoja A4"
       python sistema-visual/estudio.py nombre "Materia A" "Trabajo práctico" --unidades 4
 
-  entorno   Que programas encontro (Pandoc, navegador, LibreOffice)
+  entorno   Verifica que esta instalado y que falta, con la fuente oficial de cada cosa. NO instala nada
+            salvo con --instalar-pip (bibliotecas de Python desde PyPI) y despues de que la persona lo autorice
 
 --formato:  completo | a4 | diapositivas        --modo: extenso | corto
 --salida:   html | html+pdf | pdf  (solo Hoja A4, material y TP; en HTML completo y diapositivas es siempre HTML)
@@ -60,7 +61,14 @@ def _entregar(html, a, md, espejo):
         print("  hojas del PDF:", hojas)
 
 
+def _necesita(funcion, extra=()):
+    """Antes de generar nada, comprueba las dependencias; si falta algo obligatorio, informa y termina sin instalar."""
+    import dependencias
+    dependencias.exigir(funcion, extra)
+
+
 def cmd_resumen(a):
+    _necesita("pdf" if a.formato == "a4" and "pdf" in a.salida else "html")
     import construir as c
     md = os.path.abspath(a.md)
     espejo = not a.sin_espejo
@@ -78,6 +86,7 @@ def cmd_resumen(a):
 
 
 def cmd_material(a):
+    _necesita("pdf" if "pdf" in a.salida else "html")
     import construir as c
     md = os.path.abspath(a.md)
     with tempfile.TemporaryDirectory(prefix="estudio_") as tmp:
@@ -87,6 +96,7 @@ def cmd_material(a):
 
 
 def cmd_tp(a):
+    _necesita("pdf" if "pdf" in a.salida else "html")
     import construir as c
     md = os.path.abspath(a.md)
     with tempfile.TemporaryDirectory(prefix="estudio_") as tmp:
@@ -96,6 +106,7 @@ def cmd_tp(a):
 
 
 def cmd_docx(a):
+    _necesita("word")
     cmd = [sys.executable, os.path.join(RAIZ, "docx", "construir_docx.py"), os.path.abspath(a.md), "--tipo", a.tipo,
            "-o", os.path.abspath(a.o), "--chequeo"]
     if a.modo and a.tipo == "resumen":
@@ -119,9 +130,14 @@ def cmd_nombre(a):
     print(n)
 
 
-def cmd_entorno(_):
-    import entorno
-    sys.exit(subprocess.call([sys.executable, os.path.join(RAIZ, "herramientas", "entorno.py")]))
+def cmd_entorno(a):
+    """Informe de dependencias (que esta instalado y que falta, con la fuente oficial de cada cosa)."""
+    cmd = [sys.executable, os.path.join(RAIZ, "herramientas", "dependencias.py")]
+    if a.para:
+        cmd += ["--para", a.para]
+    if a.instalar_pip:
+        cmd += ["--instalar-pip"] + (["--si"] if a.si else [])
+    sys.exit(subprocess.call(cmd))
 
 
 def main():
@@ -178,6 +194,9 @@ def main():
     p.set_defaults(f=cmd_nombre)
 
     p = sub.add_parser("entorno")
+    p.add_argument("--para", help="html, pdf, word, graficos, diagramas, verificacion o todo")
+    p.add_argument("--instalar-pip", action="store_true", help="instala desde PyPI las bibliotecas de Python que falten (pide confirmacion)")
+    p.add_argument("--si", action="store_true", help="con --instalar-pip: la persona ya lo autorizo, no preguntar")
     p.set_defaults(f=cmd_entorno)
 
     a = ap.parse_args()

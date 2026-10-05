@@ -66,7 +66,7 @@ La IA aplica el estándar de resolución de cada área (ver `apoyo/estandares-po
 - Los datos de los integrantes **no se anotan acá**: se pasan por el chat en cada trabajo.
 
 ## Herramientas instaladas en tu equipo
-Anotá lo que ya tenés para que la IA no intente reinstalarlo. La guía de instalación está en `MANUAL-DE-IMPLEMENTACION.md`.
+No hace falta completarlo a mano: la IA lo comprueba con `python sistema-visual/estudio.py entorno` y, si falta algo, te lo dice y te pide permiso antes de instalar nada, siempre desde fuentes oficiales. La guía de instalación está en `MANUAL-DE-IMPLEMENTACION.md`.
 - Sistema operativo: [completar]
 - Python 3.10 o superior: [completar sí/no]
 - Pandoc 3.8 o superior: [completar sí/no]

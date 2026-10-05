@@ -26,7 +26,7 @@ No contiene datos de ninguna persona, materia ni trabajo realizado: es una plant
 | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` | Archivos de entrada que reconocen las herramientas de IA. El texto está solo en `AGENTS.md`; los otros dos lo importan |
 
 ## Inicio rápido
-1. Instalá Python, Pandoc y un navegador (el que ya uses sirve), y después `python -m pip install -r requirements.txt` (detalle en `MANUAL-DE-IMPLEMENTACION.md`).
+1. Comprobá qué te falta con `python sistema-visual/estudio.py entorno`: te dice qué instalar y de qué fuente oficial. El proyecto nunca instala nada sin tu permiso (detalle en `MANUAL-DE-IMPLEMENTACION.md`).
 2. Abrí tu herramienta de IA dentro de esta carpeta (si no lee archivos, `python adaptadores/adaptar.py --prompt-unico` arma un documento para pegar).
 3. Pedile: «Hacé la puesta en marcha». Te pregunta por tu carrera y tus carpetas, y lo anota.
 4. Empezá a pedir: «Resumí la unidad 1 de [materia] en modo extenso, en hoja A4».

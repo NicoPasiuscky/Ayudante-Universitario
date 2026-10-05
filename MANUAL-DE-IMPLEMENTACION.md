@@ -59,18 +59,24 @@ sudo apt install python3 python3-pip graphviz default-jre
 **PlantUML** (opcional): bajá `plantuml.jar` vos mismo desde la página oficial de lanzamientos de PlantUML y guardalo en una carpeta tuya; creá un acceso (`plantuml.cmd` en Windows o un script `plantuml` en macOS y Linux) que ejecute `java -jar <ruta>/plantuml.jar %*`. Es una descarga que conviene hacer a mano: no pidas que la IA baje ejecutables.
 
 ### 2.3 Instalar las bibliotecas de Python
-Desde la carpeta del proyecto:
+Desde la carpeta del proyecto, cualquiera de las dos formas (ambas instalan desde PyPI, el repositorio oficial):
 ```
 python -m pip install -r requirements.txt
+python sistema-visual/estudio.py entorno --instalar-pip
 ```
+La segunda instala solo las que falten y te pide confirmación antes.
 (Opcional, para PDF escaneados: `python -m pip install docling`.)
 
-### 2.4 Decirle al proyecto dónde están los programas
+### 2.4 Comprobar qué falta y dónde están los programas
 Casi siempre se encuentran solos. Para comprobarlo:
 ```
 python sistema-visual/estudio.py entorno
 ```
-Muestra qué encontró de Pandoc, del navegador y de LibreOffice. Si algo aparece como `NO ENCONTRADO` pero está instalado, definí la variable de entorno que corresponde, con la ruta completa del programa:
+Muestra qué está instalado y qué falta (Python y su versión, Pandoc y su versión, navegador, bibliotecas de Python, y los opcionales). Para cada cosa que falta indica **para qué sirve, de qué fuente oficial se obtiene y con qué comando**. También se puede mirar solo lo necesario para una función: `--para html`, `--para pdf`, `--para word`, `--para graficos`, `--para diagramas` o `--para verificacion`.
+
+**El proyecto no instala nada por su cuenta.** Si falta algo, te lo dice y vos decidís. Las únicas instalaciones que puede hacer, y solo si lo autorizás, son las bibliotecas de Python desde PyPI (el repositorio oficial): `python sistema-visual/estudio.py entorno --instalar-pip` te pide confirmación antes de instalar. Los programas del sistema (Pandoc, navegador, Graphviz, Java, LibreOffice) se instalan con los comandos o las páginas oficiales que el informe muestra, ya sea por vos o por tu asistente de IA con tu permiso explícito. Los comandos de generación (`estudio.py resumen`, `docx`, etc.) y `construir.py` hacen esta comprobación al empezar y se detienen con un mensaje claro si falta algo obligatorio.
+
+Si algo aparece como faltante pero sí está instalado en un lugar poco común, definí la variable de entorno que corresponde, con la ruta completa del programa:
 - `ESTUDIO_PANDOC` para Pandoc
 - `ESTUDIO_NAVEGADOR` para el navegador (ruta completa, o el nombre si está en el PATH)
 - `ESTUDIO_SOFFICE` para LibreOffice

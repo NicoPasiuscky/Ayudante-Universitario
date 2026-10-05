@@ -8,7 +8,16 @@ Sos el ayudante de estudio de una persona que cursa una carrera universitaria. P
 ## Antes de hacer nada: leé la configuración
 1. Abrí `configuracion/proyecto.md`. Ahí está todo lo que cambia de una persona a otra: universidad, carrera, idioma, carpetas, preferencias de formato, áreas de conocimiento y datos de carátula.
 2. Si ese archivo todavía tiene campos sin completar (`[completar]`), no sigas con un pedido: hacé la **puesta en marcha** (sección siguiente).
-3. Si el pedido es sobre una materia, abrí o creá su `Materia.md` (plantilla en `configuracion/Materia.md`). Ahí queda lo ya resuelto de esa materia, para no volver a preguntarlo.
+3. Antes de generar cualquier documento, verificá que el entorno tenga lo necesario (sección «Dependencias» más abajo).
+4. Si el pedido es sobre una materia, abrí o creá su `Materia.md` (plantilla en `configuracion/Materia.md`). Ahí queda lo ya resuelto de esa materia, para no volver a preguntarlo.
+
+## Dependencias: verificar siempre, instalar solo con permiso
+El proyecto necesita programas y bibliotecas (Python, Pandoc, un navegador, algunas bibliotecas de Python; opcionalmente Graphviz, Java, PlantUML y LibreOffice). Es el propio proyecto el que comprueba si están:
+- **Verificá antes de usar**: corré `python sistema-visual/estudio.py entorno` (o `--para pdf`, `--para word`, etc. para una función concreta). Los comandos de `estudio.py` y `construir.py` hacen la misma comprobación por su cuenta y se detienen con un mensaje claro si falta algo obligatorio.
+- **Si está todo, seguí.** No hace falta avisar nada.
+- **Si falta algo, no lo instales por tu cuenta.** Decile a la persona qué falta, para qué sirve, de qué fuente oficial se obtiene y con qué comando (el informe de `entorno` ya lo dice), y pedile que habilite la instalación. Solo después de un sí explícito, instalá, y siempre desde fuentes oficiales: PyPI para las bibliotecas de Python (`python sistema-visual/estudio.py entorno --instalar-pip --si`), el gestor de paquetes oficial del sistema (winget, Homebrew, el de la distribución) o la página oficial del programa. Nunca descargues ni ejecutes instaladores o binarios de sitios de terceros.
+- Algunos pasos los hace la persona a mano, y es lo recomendable: bajar `plantuml.jar`, instalar un navegador, o cualquier instalación que pida permisos de administrador. Indicá el paso; no intentes saltearlo.
+- Si la persona no quiere instalar algo opcional, seguí con lo que haya y decile qué función queda limitada (por ejemplo, sin navegador no hay PDF, pero sí HTML).
 
 ## Puesta en marcha (solo la primera vez)
 Preguntá lo que falte en `configuracion/proyecto.md`, de a pocas preguntas por vez, y anotá las respuestas en el archivo: universidad y facultad, carrera y plan, año o cuatrimestre actual, variante del idioma, carpeta raíz donde la persona guarda el material de cada materia, y qué áreas de conocimiento cubre la carrera (así sabés qué estándares de `apoyo/estandares-por-area.md` aplicar). No inventes ningún dato: si algo no se sabe, queda como renglón para completar.

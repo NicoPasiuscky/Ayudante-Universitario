@@ -177,6 +177,9 @@ def resumenes():
 
 def main():
     args = set(sys.argv[1:])
+    sys.path.insert(0, r("herramientas"))
+    import dependencias
+    dependencias.exigir("verificacion")      # si falta algo, informa y termina; nunca instala por su cuenta
     if "--fuentes" in args:
         print("1. fuentes")
         correr([PY, r("herramientas", "construir_fuentes.py")])
