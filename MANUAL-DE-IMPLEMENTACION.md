@@ -92,7 +92,7 @@ Una diferencia a tener en cuenta: cada motor dibuja con pequeñas diferencias (d
 
 ## 3. Conectar el proyecto con tu IA
 Detalle completo en `adaptadores/LEEME.md`. En resumen:
-1. Abrí tu herramienta de IA **dentro de la carpeta del proyecto** (para que vea los archivos). Si usa un archivo de instrucciones propio, ya viene creado: `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.cursor/rules/`, `.github/copilot-instructions.md`. Para otra herramienta: `python adaptadores/adaptar.py --lista`.
+1. Abrí tu herramienta de IA **dentro de la carpeta del proyecto** (para que vea los archivos). Los archivos de entrada ya vienen creados: `AGENTS.md` (lo leen Codex, Cursor, Copilot, Windsurf y muchas más), `CLAUDE.md` y `GEMINI.md` (que solo importan `AGENTS.md`). Para una herramienta que necesite un archivo propio: `python adaptadores/adaptar.py --lista`.
 2. Si tu IA no lee archivos del disco, generá el documento único: `python adaptadores/adaptar.py --prompt-unico` y pegá `trabajo/prompt-completo.md` en las instrucciones del proyecto o del sistema.
 3. Configurá los permisos según `adaptadores/permisos-ejemplo.md` (lectura de tu carpeta de la universidad; escritura solo en las carpetas de salida).
 4. Probá con un pedido corto: «Leé `INSTRUCCIONES.md` y decime qué flujos tenés». Tiene que nombrar resumir, TP, explicar y cuestionario.

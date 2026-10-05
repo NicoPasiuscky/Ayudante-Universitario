@@ -15,6 +15,10 @@ Uso (desde cualquier carpeta):
     python adaptadores/adaptar.py --prompt-unico               crea trabajo/prompt-completo.md
     python adaptadores/adaptar.py --prompt-unico --sin-apoyo   version corta (solo instrucciones, flujos y roles)
 
+El texto vive una sola vez, en AGENTS.md. CLAUDE.md y GEMINI.md solo lo importan (`@AGENTS.md`); Cursor, GitHub
+Copilot (agente), Codex y otras leen AGENTS.md directamente, asi que no necesitan archivo propio. Windsurf y Cline,
+que tienen el suyo, se generan solo si los pedis.
+
 Nunca pisa un archivo que ya existe: si existe, lo deja y avisa (usa --forzar para reemplazarlo).
 Las convenciones de nombres son las vigentes al escribir este script; si tu herramienta cambió la
 suya, copia el contenido de `PUNTERO` al archivo que ella pida.
@@ -42,6 +46,9 @@ están en este proyecto, en archivos Markdown.
 Regla de oro: la fuente de la cátedra manda; nunca inventes, y nunca escribas dentro de las carpetas de fuente.
 """
 
+# Para las herramientas que permiten importar otro archivo con @ruta: en vez de repetir el texto, apuntan a AGENTS.md
+IMPORTAR = "@AGENTS.md\n"
+
 COMANDOS = {
     "resumir": ("Resume una unidad, una materia o un tema corto en el formato y el modo pedidos.", "flujos/resumir.md"),
     "tp": ("Ayuda con un trabajo práctico y lo entrega en HTML A4, PDF o Word.", "flujos/tp.md"),
@@ -64,10 +71,10 @@ def herramientas():
     h = {
         "agents": ("AGENTS.md: lo leen Codex CLI de OpenAI, Cursor, GitHub Copilot (agente), Jules, Aider y muchas más",
                    [("AGENTS.md", PUNTERO)]),
-        "claude": ("Claude Code (Anthropic): CLAUDE.md y comandos /resumir /tp /explicar /cuestionario",
-                   [("CLAUDE.md", PUNTERO)] +
+        "claude": ("Claude Code (Anthropic): CLAUDE.md (importa AGENTS.md) y comandos /resumir /tp /explicar /cuestionario",
+                   [("AGENTS.md", PUNTERO), ("CLAUDE.md", IMPORTAR)] +
                    [(f".claude/commands/{n}.md", _comando_markdown(n, d, f)) for n, (d, f) in COMANDOS.items()]),
-        "gemini": ("Gemini CLI (Google): GEMINI.md", [("GEMINI.md", PUNTERO)]),
+        "gemini": ("Gemini CLI (Google): GEMINI.md (importa AGENTS.md)", [("AGENTS.md", PUNTERO), ("GEMINI.md", IMPORTAR)]),
         "cursor": ("Cursor: regla siempre activa en .cursor/rules", [(".cursor/rules/ayudante-universitario.mdc", _cursor())]),
         "copilot": ("GitHub Copilot: .github/copilot-instructions.md", [(".github/copilot-instructions.md", PUNTERO)]),
         "windsurf": ("Windsurf: .windsurfrules", [(".windsurfrules", PUNTERO)]),
