@@ -1,0 +1,177 @@
+/* ==========================================================================
+   resumen-diapositivas.css - Formato "Diapositivas HTML" (sistema v4)
+   --------------------------------------------------------------------------
+   Carga: fuentes.html -> tokens -> resumen-base -> este, mas
+     --include-before-body=incluir/tema.html         (boton de modo claro u oscuro)
+     --include-after-body=incluir/diapositivas.html  (navegacion, vista general)
+     -M formato=diapositivas
+   estudio.lua arma una <section class="diapositiva"> por idea: la portada
+   (# de la unidad), cada ##, cada ### y cada corte (--- o ::: corte).
+   Sin JavaScript queda una pagina comun con las diapositivas una debajo de
+   otra. Con JavaScript, <html class="deck"> muestra una sola a la vez.
+
+   Letra fluida: --u sigue al menor entre el ancho y el alto de la ventana
+   (25,9 px en 1280 x 720; 16 px como piso en celular vertical y horizontal).
+   Una diapositiva que no entra a esa letra se desplaza dentro de si misma:
+   nunca se recorta ni rompe la navegacion.
+
+   Solo pantalla (compu y celular, modo claro u oscuro con boton): las
+   diapositivas no se imprimen, asi que no llevan CSS de impresion ni margenes
+   de carpeta.
+   ========================================================================== */
+:root {
+  --u: clamp(17px, min(2.05vw, 3.55vh), 30px);
+  --t-cuerpo: var(--u);
+  --t-nota: calc(var(--u) * .88);
+  --sangria: 0px;
+  --margen: 0px;
+  --hueco: 0px;
+  --t-numeral: 6rem;
+  --t-h1: 2.5rem;
+  --t-h2: 1.9rem;
+  --t-h3: 1.3rem;
+  --texto-diap: 42rem;
+}
+html { font-size: var(--u); }
+.libro { padding: 0; }
+
+/* ---------- La diapositiva ---------- */
+.diapositiva {
+  padding: clamp(14px, 4.5vh, 56px) clamp(16px, 6vw, 110px);
+  background: var(--papel);
+}
+.diapositiva + .diapositiva { border-top: 1px solid var(--filete); margin-top: 3rem; }
+.diapositiva > * { width: 100%; max-width: var(--texto-diap); margin-left: auto; margin-right: auto; }
+.diapositiva h2 { margin: 0 auto .7em; }
+.diapositiva h3 { margin: 0 auto .5em; font-size: var(--t-h3); }
+.diapositiva p + p { text-indent: 0; margin-top: .6em; }
+.serie-rotulo { font-size: var(--t-nota); color: var(--lapiz); }
+.diapositiva > p:has(> .serie-rotulo) { margin-bottom: .5em; }
+.diapositiva.portada > * { max-width: 46rem; }
+
+/* Sin sangria ni columna de margen: como el celular del formato completo */
+h2 .num { width: auto; margin-left: 0; margin-right: .4em; }
+.colgado { position: static; display: inline; width: auto; font-size: 1em; margin-right: .3em; line-height: inherit; }
+.colgado::after { content: "."; }
+.errores li, .ojo { padding-left: 1.35em; }
+.errores li::before, .ojo::before { left: 0; width: 1.1em; text-align: left; }
+.glosario dl { display: block; }
+.glosario dd { margin: 0 0 .6em; }
+.con-nota, figure { display: block; margin-right: 0; }
+.par-notas { margin: .5em 0 .2em 1.3em; }
+.nota-ref { font-size: .85em; }
+figcaption { margin-top: .5em; }
+h1.apertura { margin-right: 0; }
+h1.apertura .numeral { min-width: 0; padding-right: .18em; }
+.encabezado { margin-right: 0; margin-bottom: 2.2em; }
+.sintesis { margin-top: 1.2em; }
+
+/* Lo ancho se acomoda o se desplaza dentro de su bloque, nunca desborda la diapositiva */
+.ecuacion, .tabla, pre { max-width: 100%; overflow-x: auto; }
+figure svg, figure img { width: 100%; height: auto; max-height: 52vh; }
+.diapositiva > .clave { width: fit-content; min-width: 60%; max-width: 100%; box-sizing: border-box; overflow-x: auto; }
+/* los bloques de una diapositiva no se encogen (con overflow quedarian en alto 0): la diapositiva se desplaza */
+.diapositiva > * { flex-shrink: 0; }
+.clave .ecuacion > p:first-child { flex-wrap: wrap; }
+p:has(> math[display="block"]) { max-width: 100%; overflow-x: auto; }
+table { font-size: var(--t-nota); }
+th, td { padding-right: .8em; }
+
+/* Plegable: un boton visible para revelar la resolucion */
+.diapositiva details.plegable > summary {
+  border: 1px solid var(--azul);
+  padding: .35em .9em;
+  min-height: 2.4em;
+  display: inline-flex;
+  align-items: center;
+}
+.diapositiva details.plegable[open] > summary { border-color: var(--filete); }
+
+/* ---------- Modo de presentacion (JavaScript activo) ---------- */
+html.deck, html.deck body { height: 100%; }
+html.deck body {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+html.deck .libro { position: relative; min-height: 0; overflow: hidden; }
+html.deck .diapositiva {
+  display: none;
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  border-top: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+html.deck .diapositiva[data-activa] {
+  display: flex;
+  flex-direction: column;
+  animation: aparecer .12s ease-out;
+}
+@keyframes aparecer { from { opacity: 0; } to { opacity: 1; } }
+html.deck .diapositiva.portada > :first-child { margin-top: auto; }
+html.deck .diapositiva.portada > :last-child { margin-bottom: auto; }
+
+/* ---------- Barra de navegacion ---------- */
+.deck-ui {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--filete);
+  background: var(--papel);
+  font-size: 15px;
+}
+.deck-grupo { display: flex; align-items: center; gap: 8px; }
+.deck-contador { min-width: 5.2em; text-align: center; font-variant-numeric: lining-nums tabular-nums; }
+.progress-barra { position: absolute; left: 0; right: 0; top: -1px; height: 3px; background: var(--filete); }
+.progress-relleno { height: 100%; width: 0; background: var(--azul); }
+.nav-btn, .deck-ui .tema-boton {
+  appearance: none;
+  cursor: pointer;
+  font: 500 15px/1.2 var(--f-texto);
+  color: var(--tinta);
+  background: var(--papel);
+  border: 1px solid var(--filete);
+  border-radius: 3px;
+  padding: .45em .85em;
+  min-height: 40px;
+}
+.deck-ui .tema-boton { position: static; }
+.nav-btn:hover, .deck-ui .tema-boton:hover { border-color: var(--tinta); }
+.nav-btn:focus-visible, .deck-ui .tema-boton:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+.nav-btn:disabled { color: var(--lapiz); border-style: dashed; cursor: default; }
+.nav-btn:disabled:hover { border-color: var(--filete); }
+.solo-lectura { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Vista general: una lista de titulos, cada uno lleva a su diapositiva ---------- */
+.deck-general { position: fixed; inset: 0; z-index: 30; overflow: auto; padding: 16px; background: var(--papel); }
+.deck-general[hidden] { display: none; }
+.general-cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 14px; font-size: 1.1rem; font-weight: 700; }
+.general-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: 8px; list-style: none; margin: 0; padding: 0; }
+.general-btn { display: flex; align-items: baseline; gap: .6em; width: 100%; min-height: 48px; text-align: left; }
+.general-btn[aria-current="true"] { border: 2px solid var(--tinta); }
+.general-num { color: var(--azul); font-weight: 700; font-variant-numeric: lining-nums tabular-nums; min-width: 2ch; }
+
+@media (max-width: 40rem) { .solo-ancho { display: none; } }
+/* Figuras: la letra del SVG crece para seguir legible (14 px o mas) al achicarse a un celular */
+@media (max-width: 40rem), (max-height: 500px) {
+  figure svg.grafico text { font-size: 24px; }
+  figure svg.grafico text.eje { font-size: 24px; }
+}
+@media (max-height: 500px) {
+  .diapositiva { padding-top: 10px; padding-bottom: 10px; }
+  .diapositiva h2 { font-size: 1.5rem; margin-bottom: .4em; }
+  .encabezado { margin-bottom: 1em; }
+  h1.apertura { margin-bottom: .6em; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.deck .diapositiva[data-activa] { animation: none; }
+}

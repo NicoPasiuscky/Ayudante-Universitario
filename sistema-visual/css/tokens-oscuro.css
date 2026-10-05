@@ -1,0 +1,59 @@
+/* ==========================================================================
+   tokens-oscuro.css - Modo oscuro de pantalla (sistema v4)
+   --------------------------------------------------------------------------
+   Solo para el HTML completo, las diapositivas y el indice, junto con el boton
+   de incluir/tema.html. NUNCA se carga en la Hoja A4 ni en el material impreso
+   en HTML A4 (parcial, soluciones, modelos, TP): esos salen siempre
+   claros y sin boton. Va despues de
+   tokens.css. Tambien trae el estilo del boton (.tema-boton).
+   ========================================================================== */
+/* ---- Modo oscuro de pantalla: sigue al sistema si no se eligio nada; el
+   boton (incluir/tema.html) fija data-theme en <html> y lo recuerda. ---- */
+@media screen and (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --papel:  #15181E;
+    --tinta:  #E4E6EA;   /* 14,2:1 */
+    --lapiz:  #A3A8B1;   /*  7,4:1 */
+    --filete: #3A3F48;
+    --mesa:   #0E1014;
+    --azul:   #8DB0F5;   /*  8,2:1 */
+    --rojo:   #F08A8A;   /*  7,4:1 */
+    --verde:  #7FCB98;   /*  9,2:1 */
+    --seleccion: #26324D;
+    color-scheme: dark;
+  }
+}
+@media screen {
+  :root[data-theme="dark"] {
+    --papel:  #15181E;
+    --tinta:  #E4E6EA;
+    --lapiz:  #A3A8B1;
+    --filete: #3A3F48;
+    --mesa:   #0E1014;
+    --azul:   #8DB0F5;
+    --rojo:   #F08A8A;
+    --verde:  #7FCB98;
+    --seleccion: #26324D;
+    color-scheme: dark;
+  }
+}
+
+/* ---------- Boton de modo claro u oscuro (incluir/tema.html) ---------- */
+.tema-boton {
+  position: fixed;
+  top: .8rem;
+  right: .8rem;
+  z-index: 20;
+  appearance: none;
+  cursor: pointer;
+  font: 500 14px/1.2 var(--f-texto);
+  color: var(--tinta);
+  background: var(--papel);
+  border: 1px solid var(--filete);
+  border-radius: 3px;
+  padding: .45em .8em;
+  min-height: 36px;
+}
+.tema-boton:hover { border-color: var(--tinta); }
+.tema-boton:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+@media print { .tema-boton { display: none; } }

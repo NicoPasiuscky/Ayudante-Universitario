@@ -1,0 +1,33 @@
+<!-- a4-pagina.html - solo formato "Hoja A4", con --include-in-header, ANTES de
+     incluir/paged-init.html.
+     1. PagedConfig: Paged.js espera a que las fuentes incrustadas esten listas
+        antes de medir (si no, corta las hojas con la letra de reserva) y al
+        terminar marca <html data-paginado="1">, que es lo que espera la
+        captura (herramientas/captura_espera.py).
+     2. En pantalla: hojas centradas sobre la mesa, con la unica sombra del
+        documento. data-pagedjs-ignore: Paged.js no procesa este bloque, asi
+        que puede dibujar sobre las hojas ya armadas.
+     La Hoja A4 y el material impreso salen SIEMPRE claros: sin tokens oscuros
+     ni boton de tema en ningun bloque. -->
+<script>
+window.PagedConfig = {
+  auto: true,
+  before: function () { return Promise.all([document.fonts && document.fonts.ready, window.__mermaidListo]); },
+  after: function () {
+    document.documentElement.setAttribute("data-paginado", "1");
+  }
+};
+</script>
+<style data-pagedjs-ignore>
+@media screen {
+  html, body { background: var(--mesa, #E8E9EC); margin: 0; }
+  .pagedjs_pages {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 1.4rem; padding: 2.4rem 0 3rem;
+  }
+  .pagedjs_page {
+    background: var(--papel, #fff);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .10), 0 6px 20px rgba(0, 0, 0, .08);
+  }
+}
+</style>
