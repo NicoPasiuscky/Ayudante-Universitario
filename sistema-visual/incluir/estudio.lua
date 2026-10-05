@@ -22,7 +22,7 @@ Que entiende, en orden de documento:
   ## Seccion {#sec:id}                numerada "3.1", el numero cuelga a la izquierda
   ## Seccion {-}                      sin numero (Glosario)
   ### Subtitulo                       segundo nivel, sin numero
-  ::: {.definicion titulo="..."}      "Definicion 3.1 (...)." en linea, sin caja
+  ::: {.definicion titulo="..."}      "**...**." en linea, sin caja (solo el nombre en negrita; sin titulo, "Definicion 3.1.")
       tambien .ejemplo .propiedad (misma numeracion)
   ::: resolucion  (dentro de un ejemplo)   plegable "Ver la resolucion"; en A4, abierto
   ::: {.demostracion titulo="..."}    toda plegable; en A4, abierta
@@ -134,22 +134,22 @@ local numerar = {
       if tiene(d, clase) then
         c.enun = c.enun + 1
         local n = unidad .. "." .. c.enun
-        local ins = pandoc.Inlines({pandoc.Span(texto(nombre .. " " .. n), {class = "rotulo"})})
         local t = d.attributes.titulo
+        local ins
         if t then
-          ins:insert(pandoc.Space())
-          ins:extend(texto("(" .. t .. ")."))
+          -- solo el nombre del concepto, en negrita; sin rotulo ni numero
+          ins = pandoc.Inlines({pandoc.Strong(texto(t .. "."))})
         else
-          ins[1].content:insert(pandoc.Str("."))
+          ins = pandoc.Inlines({pandoc.Span(texto(nombre .. " " .. n .. "."), {class = "rotulo"})})
         end
         if clase == "demostracion" then
-          d.attributes.resumen = pandoc.utils.stringify(ins)
+          d.attributes.resumen = nombre .. " " .. n .. (t and (" (" .. t .. ").") or ".")
         else
           d.content = anteponer(d.content, ins)
         end
         d.classes:insert("enunciado")
         d.attributes.titulo = nil
-        if d.identifier ~= "" then refs[d.identifier] = string.lower(nombre) .. " " .. n end
+        if d.identifier ~= "" then refs[d.identifier] = t or (string.lower(nombre) .. " " .. n) end
         return d
       end
     end
@@ -550,7 +550,7 @@ function Pandoc(doc)
   if m.materia then
     local linea = pandoc.Inlines({pandoc.Span(texto(pandoc.utils.stringify(m.materia)), {class = "enc-materia"})})
     if m.unidad then
-      -- "Materia | Unidad N", juntas del lado izquierdo
+      -- "Materia | Unidad N", juntas del lado izquierdo (decision del usuario, 2026-09-30)
       linea:insert(pandoc.Space())
       linea:insert(pandoc.Span(texto("|"), {class = "enc-sep"}))
       linea:insert(pandoc.Space())

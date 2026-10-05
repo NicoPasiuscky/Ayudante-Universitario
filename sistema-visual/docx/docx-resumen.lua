@@ -119,19 +119,19 @@ local numerar = {
       if tiene(d, clase) then
         c.enun = c.enun + 1
         local n = unidad .. "." .. c.enun
-        local ins = pandoc.Inlines({strong(nombre .. " "), run("NumeroRotulo", n)})
         local t = d.attributes.titulo
+        local ins
         if t then
-          ins:insert(pandoc.Space())
-          ins:insert(pandoc.Str("(" .. t .. ")."))
+          -- solo el nombre del concepto, en negrita; sin rotulo ni numero
+          ins = pandoc.Inlines({strong(t .. ".")})
         else
-          ins:insert(strong("."))
+          ins = pandoc.Inlines({strong(nombre .. " "), run("NumeroRotulo", n), strong(".")})
         end
         d.content = K.anteponer(d.content, ins)
         d.classes:insert("enunciado")
         d.attributes.titulo = nil
         d.attributes["custom-style"] = "Enunciado"
-        if d.identifier ~= "" then refs[d.identifier] = string.lower(nombre) .. " " .. n end
+        if d.identifier ~= "" then refs[d.identifier] = t or (string.lower(nombre) .. " " .. n) end
         return d
       end
     end
