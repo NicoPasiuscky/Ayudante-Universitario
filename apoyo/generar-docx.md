@@ -17,7 +17,7 @@ python sistema-visual/docx/construir_docx.py "<TP>.md" --tipo tp --datos "<TP>.j
 - `--modo`: solo resumen; el corto no lleva síntesis, glosario, demostraciones ni índice. `--indice`: índice simple (sin enlaces) en el resumen extenso. `--practica`: activa `practica: true` (previas y «Probá sin mirar», marcados como material de práctica).
 - `--datos` (JSON): en `tp`, la carátula y la cabeza (ver «Carátula»); en los demás, opcional: `{"cabecera": {"materia": "...", "tema": "..."}}`. Sin `--datos`, materia y tema salen del encabezado YAML del `.md` (el mismo del HTML).
 - `--referencia` regenera los tres `reference-*.docx` (también lo hace `python construir.py`).
-- Requisitos: Pandoc, Firefox (pasa los SVG a PNG), `pip install lxml fonttools pillow pymupdf`.
+- Requisitos: Pandoc, un navegador (pasa los SVG a PNG), `pip install lxml fonttools pillow pymupdf`.
 - Los archivos de trabajo (PNG de figuras, fuentes renombradas) van a una carpeta temporal que se borra. En la carpeta de la persona queda solo el `.docx` final.
 
 ## Qué traduce cada tipo (los mismos marcadores que el HTML)
@@ -26,7 +26,7 @@ python sistema-visual/docx/construir_docx.py "<TP>.md" --tipo tp --datos "<TP>.j
 
 ## Decisiones de Word que no tienen equivalente directo en HTML
 - **Notas al margen y epígrafes de figuras**: Word no tiene columna de margen. Cada nota (o figura) va en una **tabla invisible de dos columnas** (cuerpo 72 % | nota 28 %, con 0,5 cm de hueco), una sola fila que no se parte entre hojas: la nota nunca queda en otra hoja que su párrafo, y el epígrafe queda al costado de la figura, alineado abajo. Es el mismo esquema del HTML (120 mm + 44 mm) y es más estable que una nota al pie, que separaría la nota del párrafo.
-- **Figuras**: los SVG del Markdown se pasan a **PNG de 2400 px de ancho** (unos 500 ppp) con Firefox sin interfaz, con la letra y los colores de la página; Word no dibuja bien SVG con CSS (`currentColor`, clases). El Markdown no cambia: sigue apuntando al `.svg`.
+- **Figuras**: los SVG del Markdown se pasan a **PNG de 2400 px de ancho** (unos 500 ppp) con navegador sin interfaz, con la letra y los colores de la página; Word no dibuja bien SVG con CSS (`currentColor`, clases). El Markdown no cambia: sigue apuntando al `.svg`.
 - **Plegables**: `resolucion` y `demostracion` salen abiertas, como en impresión.
 - **Sección vigente en la cabeza de hoja**: campo `STYLEREF TituloSec`; el texto de cada título de unidad o sección lleva ese estilo de carácter. La primera hoja no la lleva (como la A4). Word lo calcula al abrir; otros lectores pueden mostrarlo vacío.
 - **Rótulo tipo plano del material**: una sola línea en la **cabecera** de la sección, en el margen superior: «materia | tema» del lado interior y «Hoja n de N» del exterior (marcador `ROT_LINEA` que reemplaza el posproceso). Sin pie: el área de texto ocupa toda la hoja. Sin datos personales ni fecha.

@@ -104,7 +104,7 @@ Cada sección cierra con un resumen breve, con el rótulo colgado a la izquierda
 
 El cuestionario conserva toda la mecánica de la versión anterior (sorteo, orden aleatorio de opciones, navegador, borrado, teclas, confirmación, mejor resultado y repetición espaciada) con el lenguaje nuevo: número de pregunta colgado en azul, la opción elegida encerrada como con birome, la nota sobre 10 en rojo y el repaso agrupado por tipo de error, con la corrección al margen.
 
-El parcial digitalizado respeta el encabezado del original (sin los renglones de legajo, apellido y nombre, curso ni la fecha, que son datos personales) y lleva en el margen superior una sola línea de rótulo con materia y tema del lado interior y «Hoja n de N» del exterior; los márgenes se espejan para imprimir a doble faz y el interior es más ancho para perforar. Todo el material impreso (parcial, soluciones, TP) es HTML en hoja A4; el PDF es ese mismo HTML impreso con Firefox sin interfaz, y se pregunta la salida: solo HTML, HTML más PDF o solo PDF. Las soluciones van en dos hojas aparte: resultados y resolución completa.
+El parcial digitalizado respeta el encabezado del original (sin los renglones de legajo, apellido y nombre, curso ni la fecha, que son datos personales) y lleva en el margen superior una sola línea de rótulo con materia y tema del lado interior y «Hoja n de N» del exterior; los márgenes se espejan para imprimir a doble faz y el interior es más ancho para perforar. Todo el material impreso (parcial, soluciones, TP) es HTML en hoja A4; el PDF es ese mismo HTML impreso con navegador sin interfaz, y se pregunta la salida: solo HTML, HTML más PDF o solo PDF. Las soluciones van en dos hojas aparte: resultados y resolución completa.
 
 ## Reglas y adopción {-}
 

@@ -1,4 +1,4 @@
-"""probar_tema.py - prueba en Firefox el modo claro u oscuro:
+"""probar_tema.py - prueba en el navegador el modo claro u oscuro:
 
   * HTML completo y diapositivas: UN solo boton de tema; sin eleccion guardada siguen al
     sistema (claro u oscuro); un clic cambia el tema y los colores reales; se recuerda al
@@ -24,7 +24,7 @@ sys.dont_write_bytecode = True
 AQUI = os.path.dirname(os.path.abspath(__file__))
 RAIZ = os.path.dirname(AQUI)
 sys.path.insert(0, AQUI)
-from captura_espera import Firefox  # noqa: E402
+from captura_espera import Navegador  # noqa: E402
 import imprimir_a4  # noqa: E402
 import pymupdf  # noqa: E402
 
@@ -43,11 +43,11 @@ def luz(rgb):
 
 def ir(ff, rel, espera=None):
     url = pathlib.Path(os.path.join(RAIZ, rel)).as_uri()
-    ff.cmd("WebDriver:SetWindowRect", {"width": 1280, "height": 900})
-    ff.cmd("WebDriver:Navigate", {"url": url})
+    ff.ventana(1280, 900)
+    ff.ir(url)
     ff.esperar("document.readyState=='complete'")
     ff.js("try{localStorage.removeItem('estudio-v4-tema')}catch(e){} return 1;")
-    ff.cmd("WebDriver:Refresh", {})
+    ff.recargar()
     ff.esperar("document.readyState=='complete'")
     if espera:
         ff.esperar(espera, maximo=120)
@@ -61,7 +61,7 @@ def boton(ff, rel, nombre, sistema, res):
     ff.js("document.getElementById('temaBoton').click(); return 1;")
     tras = luz(ff.js(FONDO))
     tema = ff.js("return document.documentElement.getAttribute('data-theme')")
-    ff.cmd("WebDriver:Refresh", {})
+    ff.recargar()
     ff.esperar("document.readyState=='complete'")
     recuerda = ff.js("return document.documentElement.getAttribute('data-theme')")
     despues = luz(ff.js(FONDO))
@@ -94,7 +94,7 @@ def analizar_pdf(pdf):
 
 def main():
     res = {}
-    with Firefox("oscuro") as ff:
+    with Navegador("oscuro") as ff:
         boton(ff, COMPLETO, "HTML completo", "oscuro", res)
         boton(ff, DIAPOS, "diapositivas", "oscuro", res)
         for nombre, rel in A4S.items():
@@ -108,7 +108,7 @@ def main():
             pdf = os.path.join(TEMP, "oscuro_" + os.path.basename(rel).replace(".html", ".pdf"))
             imprimir_a4.imprimir(ff, os.path.join(RAIZ, rel), pdf)
             res[f"{nombre}, PDF con sistema oscuro"] = analizar_pdf(pdf)
-    with Firefox("claro") as ff:
+    with Navegador("claro") as ff:
         boton(ff, COMPLETO, "HTML completo", "claro", res)
         boton(ff, DIAPOS, "diapositivas", "claro", res)
     ruta = os.path.join(RAIZ, "capturas", "medidas.json")

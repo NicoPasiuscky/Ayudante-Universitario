@@ -4,7 +4,7 @@ CSS, filtro y plantillas). Documentado en LEEME.md, seccion "Como se usa".
 Uso (desde cualquier carpeta):
     python construir.py              resumenes, cuestionario, material A4, indice y verificacion
     python construir.py --fuentes    ademas regenera fonts/web e incluir/fuentes.html
-    python construir.py --capturas   ademas saca todas las capturas de Firefox y exporta el
+    python construir.py --capturas   ademas saca todas las capturas del navegador y exporta el
                                      .docx con Word (tarda ~5 min)
     python construir.py --pdf        ademas deja en el directorio temporal el PDF de cada hoja A4
                                      (verificacion; el PDF de entrega lo arma imprimir_a4.entregar)
@@ -22,11 +22,11 @@ Pasos:
      demostracion por tipo de Word (resumen extenso, parcial, soluciones: resolucion)
   7. herramientas/construir_indice.py            indice.html
   8. (--capturas) herramientas/capturas.py y herramientas/captura_docx.py (Word -> PDF -> PNG)
-  9. herramientas/probar_tema.py                 modo claro u oscuro medido en Firefox (reglas 32 a 34)
+  9. herramientas/probar_tema.py                 modo claro u oscuro medido en el navegador (reglas 32 a 34)
  10. herramientas/verificar_reglas.py            (la regla 22, margenes: imprimir_a4.py imprime cada hoja A4
-                                                 a PDF con Firefox y verificar_margenes.py lo mide)
+                                                 a PDF con el navegador y verificar_margenes.py lo mide)
 
-Los archivos de trabajo (PDF de verificacion, perfil de Firefox) van a la carpeta
+Los archivos de trabajo (PDF de verificacion, perfil del navegador) van a la carpeta
 temporal del sistema; en esta carpeta solo quedan las salidas.
 """
 import os
@@ -102,7 +102,7 @@ def material(md, salida, espejo=True):
     """Material impreso en HTML A4 (parcial digitalizado, modelos y hojas de
     soluciones): Paged.js, mismos tokens y letra que el resumen A4, mas
     material.lua y material-a4.css. Si se quiere PDF, se imprime el HTML desde
-    Firefox (herramientas/imprimir_a4.py lo hace sin interfaz).
+    el navegador (herramientas/imprimir_a4.py lo hace sin interfaz).
     espejo=False: margenes iguales en todas las hojas (no se imprime); ver resumen()."""
     cmd = [PANDOC, md, "--standalone", "--embed-resources", MATHML,
            "--lua-filter=" + r("incluir", "material.lua"),
@@ -216,7 +216,7 @@ def main():
         # el indice lleva miniaturas de las capturas: se rearma y se vuelve a capturar
         correr([PY, r("herramientas", "construir_indice.py")])
         correr([PY, r("herramientas", "capturas.py"), "--solo-indice"])
-    print("9. modo claro u oscuro en Firefox (HTML completo y diapositivas con boton; A4 y material siempre claros)")
+    print("9. modo claro u oscuro en el navegador (HTML completo y diapositivas con boton; A4 y material siempre claros)")
     correr([PY, r("herramientas", "probar_tema.py")])
     print("10. verificacion de reglas (incluye la 22, margenes, y la 32 a 34, tema claro u oscuro)")
     correr([PY, r("herramientas", "verificar_reglas.py")])

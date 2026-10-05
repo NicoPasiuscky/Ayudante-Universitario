@@ -36,7 +36,7 @@ están en este proyecto, en archivos Markdown.
    persona. Si tiene campos con `[completar]`, hacé la puesta en marcha que describe `INSTRUCCIONES.md`.
 3. Según el pedido, seguí el flujo correspondiente: `flujos/resumir.md`, `flujos/tp.md`, `flujos/explicar.md` o
    `flujos/cuestionario.md`. Los roles están en `roles/` y las guías de apoyo en `apoyo/`.
-4. Las herramientas de generación de documentos (Pandoc, Python, Firefox) están en `sistema-visual/`; el manual de
+4. Las herramientas de generación de documentos (Pandoc, Python, un navegador) están en `sistema-visual/`; el manual de
    instalación es `MANUAL-DE-IMPLEMENTACION.md` y el de uso, `MANUAL-DE-USO.md`.
 
 Regla de oro: la fuente de la cátedra manda; nunca inventes, y nunca escribas dentro de las carpetas de fuente.

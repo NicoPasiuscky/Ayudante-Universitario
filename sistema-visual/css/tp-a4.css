@@ -1,6 +1,6 @@
 /* ==========================================================================
    tp-a4.css - Trabajo Practico en HTML A4 (sistema v4). Mismo Markdown y mismo
-   JSON que el .docx de docx/construir_docx.py; se imprime a PDF con Firefox
+   JSON que el .docx de docx/construir_docx.py; se imprime a PDF con el navegador
    (herramientas/imprimir_a4.py), asi un TP sale en HTML, PDF o Word.
    --------------------------------------------------------------------------
    Carga: fuentes.html -> tokens -> este, mas
