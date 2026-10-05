@@ -3,19 +3,18 @@
 El proyecto no depende de ningún modelo ni empresa: todo el conocimiento está en archivos Markdown (`INSTRUCCIONES.md`, `flujos/`, `roles/`, `apoyo/`) y las herramientas de generación son programas comunes (Python, Pandoc y el navegador que ya uses: Firefox, Chrome, Edge, Brave...). Lo único que cambia de una IA a otra es **cómo se entera de que esas instrucciones existen**. Esa es la tarea de esta carpeta.
 
 ## Qué hay en la raíz del proyecto
-Ya vienen creados los archivos de entrada de las herramientas más usadas. Todos tienen el mismo contenido corto, que manda a leer `INSTRUCCIONES.md`:
+El texto de entrada vive **una sola vez**, en `AGENTS.md`: un mensaje corto que manda a leer `INSTRUCCIONES.md`. Los demás archivos no lo repiten:
 
-| Archivo | Lo lee |
-|---|---|
-| `AGENTS.md` | Codex CLI (OpenAI), Cursor, GitHub Copilot (agente), Jules, Aider y otros que adoptaron esa convención |
-| `CLAUDE.md` y `.claude/commands/` | Claude Code (Anthropic), con los comandos `/resumir`, `/tp`, `/explicar` y `/cuestionario` |
-| `GEMINI.md` | Gemini CLI (Google) |
-| `.cursor/rules/ayudante-universitario.mdc` | Cursor |
-| `.github/copilot-instructions.md` | GitHub Copilot |
+| Archivo | Lo lee | Contenido |
+|---|---|---|
+| `AGENTS.md` | Codex CLI (OpenAI), Cursor, GitHub Copilot (agente), Jules, Aider, Windsurf y otras herramientas que adoptaron esa convención | El texto de entrada |
+| `CLAUDE.md` | Claude Code (Anthropic) | Una línea, `@AGENTS.md`, que importa el archivo anterior |
+| `GEMINI.md` | Gemini CLI (Google) | Una línea, `@AGENTS.md`, que importa el archivo anterior |
+| `.claude/commands/` | Claude Code | Los comandos `/resumir`, `/tp`, `/explicar` y `/cuestionario` (cada uno apunta a su flujo, sin copiar texto) |
 
-Para otras (Windsurf, Cline, Roo Code) o para regenerar uno: `python adaptadores/adaptar.py --herramienta windsurf`. `python adaptadores/adaptar.py --lista` muestra todas. Las convenciones de nombres las definen las empresas y cambian; si la tuya pide otro archivo, copiale el texto de `AGENTS.md`.
+Para otras herramientas que necesiten su propio archivo (por ejemplo, GitHub Copilot en el chat de algunas versiones usa `.github/copilot-instructions.md`; Cursor tiene reglas en `.cursor/rules/`; Windsurf y Cline tienen las suyas), generalo con `python adaptadores/adaptar.py --herramienta copilot` (o `cursor`, `windsurf`, `cline`). `python adaptadores/adaptar.py --lista` muestra todas. Las convenciones de nombres las definen las empresas y cambian; si la tuya pide otro archivo, copiale el texto de `AGENTS.md`.
 
-Podés borrar los archivos de las herramientas que no uses: no afecta a nada.
+Podés borrar `CLAUDE.md` o `GEMINI.md` si no usás esas herramientas: no afecta a nada.
 
 ## Si tu IA no lee archivos del disco
 Hay tres situaciones, de mejor a peor:
