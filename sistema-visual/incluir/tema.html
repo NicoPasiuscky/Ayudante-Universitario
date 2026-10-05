@@ -1,0 +1,42 @@
+<!-- tema.html - va con --include-before-body en los 3 formatos de resumen.
+     Boton para pasar de modo claro a oscuro y al reves. Sin eleccion guardada
+     sigue al sistema (prefers-color-scheme); la eleccion se recuerda en
+     localStorage, siempre dentro de try/catch (en una ventana privada o con
+     el almacenamiento bloqueado la pagina funciona igual, solo no recuerda).
+     Al imprimir: la pagina siempre sale clara (los tokens oscuros viven en
+     @media screen) y los plegables se abren para que no falte nada. -->
+<button type="button" class="tema-boton" id="temaBoton" aria-pressed="false" data-pagedjs-ignore>Modo oscuro</button>
+<script>
+(function () {
+  var CLAVE = "estudio-v4-tema", raiz = document.documentElement, boton = document.getElementById("temaBoton");
+  function guardado() { try { return localStorage.getItem(CLAVE); } catch (e) { return null; } }
+  function guardar(v) { try { localStorage.setItem(CLAVE, v); } catch (e) {} }
+  function sistemaOscuro() { return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches); }
+  function actual() { var t = raiz.getAttribute("data-theme"); return t ? t : (sistemaOscuro() ? "dark" : "light"); }
+  function pintar() {
+    var oscuro = actual() === "dark";
+    boton.textContent = oscuro ? "Modo claro" : "Modo oscuro";
+    boton.setAttribute("aria-pressed", oscuro ? "true" : "false");
+    boton.setAttribute("aria-label", oscuro ? "Pasar a modo claro" : "Pasar a modo oscuro");
+  }
+  var g = guardado();
+  if (g === "dark" || g === "light") raiz.setAttribute("data-theme", g);
+  pintar();
+  boton.addEventListener("click", function () {
+    var nuevo = actual() === "dark" ? "light" : "dark";
+    raiz.setAttribute("data-theme", nuevo);
+    guardar(nuevo);
+    pintar();
+  });
+  if (window.matchMedia) {
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    if (mq.addEventListener) mq.addEventListener("change", pintar);
+  }
+  var abiertos = [];
+  window.addEventListener("beforeprint", function () {
+    abiertos = [];
+    document.querySelectorAll("details.plegable:not([open])").forEach(function (d) { d.open = true; abiertos.push(d); });
+  });
+  window.addEventListener("afterprint", function () { abiertos.forEach(function (d) { d.open = false; }); });
+})();
+</script>

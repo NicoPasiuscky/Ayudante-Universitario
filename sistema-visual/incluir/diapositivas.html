@@ -1,0 +1,186 @@
+<!-- diapositivas.html - solo formato "Diapositivas HTML", con --include-after-body,
+     despues de formulas-rectas.html. Barra de navegacion, progreso, vista
+     general y el script. Sin librerias ni recursos externos.
+     Teclas: flechas izquierda y derecha, AvPag y RePag, barra espaciadora
+     (Mayus + espacio retrocede), Inicio y Fin, flechas arriba y abajo para
+     desplazarse dentro de una diapositiva larga, F pantalla completa, G vista
+     general, Escape la cierra. Toque en los bordes y deslizamiento en el
+     celular. #3 en la direccion abre la diapositiva 3. El boton de modo
+     claro u oscuro es el de tema.html, que este script mueve a la barra. -->
+<div class="deck-ui" id="deckUi">
+  <div class="progress-barra" id="dProgreso" role="progressbar" aria-label="Avance" aria-valuemin="1" aria-valuemax="1" aria-valuenow="1"><div class="progress-relleno" id="dRelleno"></div></div>
+  <div class="deck-grupo">
+    <button type="button" class="nav-btn" id="dAnt" aria-label="Diapositiva anterior">Anterior</button>
+    <span class="deck-contador" id="dContador">1 de 1</span>
+    <button type="button" class="nav-btn" id="dSig" aria-label="Diapositiva siguiente">Siguiente</button>
+  </div>
+  <div class="deck-grupo" id="dUtil">
+    <button type="button" class="nav-btn" id="dGeneral" aria-haspopup="dialog" aria-controls="dPanel">Vista general</button>
+    <button type="button" class="nav-btn solo-ancho" id="dPantalla" aria-label="Pantalla completa (tecla F)">Pantalla completa</button>
+  </div>
+  <div class="solo-lectura" id="dAnuncio" aria-live="polite" aria-atomic="true"></div>
+</div>
+<div class="deck-general" id="dPanel" role="dialog" aria-modal="true" aria-label="Vista general" hidden>
+  <div class="general-cab"><span>Vista general</span><button type="button" class="nav-btn" id="dCerrar">Cerrar</button></div>
+  <ol class="general-lista" id="dLista"></ol>
+</div>
+<script>
+(function () {
+  var raiz = document.documentElement;
+  var libro = document.querySelector(".libro");
+  var diaps = Array.prototype.slice.call(document.querySelectorAll(".diapositiva"));
+  var N = diaps.length;
+  if (!libro || !N) return;
+  function $(id) { return document.getElementById(id); }
+  var ant = $("dAnt"), sig = $("dSig"), cont = $("dContador"), relleno = $("dRelleno"), prog = $("dProgreso");
+  var panel = $("dPanel"), lista = $("dLista"), anuncio = $("dAnuncio"), pantalla = $("dPantalla"), abrir = $("dGeneral");
+  var actual = -1;
+
+  // El boton de modo claro u oscuro (tema.html) pasa a la barra
+  var tema = $("temaBoton");
+  if (tema) $("dUtil").appendChild(tema);
+  prog.setAttribute("aria-valuemax", String(N));
+
+  function ir(n, sinHash) {
+    n = Math.max(0, Math.min(N - 1, n));
+    if (n === actual) return;
+    if (actual >= 0) {
+      diaps[actual].removeAttribute("data-activa");
+      Array.prototype.forEach.call(diaps[actual].querySelectorAll("details[open]"), function (d) { d.open = false; });
+    }
+    actual = n;
+    diaps[n].setAttribute("data-activa", "");
+    diaps[n].scrollTop = 0;
+    cont.textContent = (n + 1) + " de " + N;
+    ant.disabled = n === 0;
+    sig.disabled = n === N - 1;
+    relleno.style.width = ((n + 1) / N * 100) + "%";
+    prog.setAttribute("aria-valuenow", String(n + 1));
+    anuncio.textContent = "Diapositiva " + (n + 1) + " de " + N + ": " + diaps[n].getAttribute("data-titulo");
+    if (!sinHash) { try { history.replaceState(null, "", "#" + (n + 1)); } catch (e) {} }
+    Array.prototype.forEach.call(lista.querySelectorAll("button"), function (b, i) {
+      if (i === n) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current");
+    });
+  }
+  function siguiente() { ir(actual + 1); }
+  function anterior() { ir(actual - 1); }
+
+  // Direccion: #3 abre la diapositiva 3; #sec:id (una referencia cruzada) abre la que contiene ese elemento
+  function desdeHash() {
+    var h = "";
+    try { h = decodeURIComponent(location.hash.slice(1)); } catch (e) { h = location.hash.slice(1); }
+    if (/^\d+$/.test(h)) return { n: Math.min(N, Math.max(1, parseInt(h, 10))) - 1 };
+    if (h) {
+      var el = document.getElementById(h), s = el && el.closest ? el.closest(".diapositiva") : null;
+      if (s) return { n: diaps.indexOf(s), el: el };
+    }
+    return null;
+  }
+  function segunHash() {
+    var d = desdeHash();
+    if (!d) return false;
+    cerrarGeneral();
+    ir(d.n);
+    if (d.el && d.el.scrollIntoView) { try { d.el.scrollIntoView({ block: "center" }); } catch (e) {} }
+    return true;
+  }
+
+  // Vista general
+  Array.prototype.forEach.call(diaps, function (d, i) {
+    var li = document.createElement("li"), b = document.createElement("button");
+    var num = document.createElement("span"), tit = document.createElement("span");
+    b.type = "button"; b.className = "nav-btn general-btn";
+    num.className = "general-num"; num.textContent = String(i + 1);
+    tit.textContent = d.getAttribute("data-titulo") || "";
+    b.appendChild(num); b.appendChild(tit);
+    b.addEventListener("click", function () { cerrarGeneral(); ir(i); });
+    li.appendChild(b); lista.appendChild(li);
+  });
+  function abrirGeneral() {
+    panel.hidden = false;
+    var b = lista.querySelectorAll("button")[actual];
+    if (b) b.focus();
+  }
+  function cerrarGeneral() {
+    if (panel.hidden) return;
+    panel.hidden = true;
+    abrir.focus();
+  }
+  abrir.addEventListener("click", abrirGeneral);
+  $("dCerrar").addEventListener("click", cerrarGeneral);
+
+  // Pantalla completa, solo si el navegador la permite
+  function pantallaCompleta() {
+    try {
+      if (document.fullscreenElement) { document.exitFullscreen(); }
+      else if (raiz.requestFullscreen) { var p = raiz.requestFullscreen(); if (p && p.catch) p.catch(function () {}); }
+    } catch (e) {}
+  }
+  if (document.fullscreenEnabled) pantalla.addEventListener("click", pantallaCompleta);
+  else pantalla.hidden = true;
+
+  ant.addEventListener("click", anterior);
+  sig.addEventListener("click", siguiente);
+
+  document.addEventListener("keydown", function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var k = e.key;
+    if (!panel.hidden) {
+      if (k === "Escape" || k === "g" || k === "G") { e.preventDefault(); cerrarGeneral(); }
+      else if (k === "Tab") {
+        var fs = panel.querySelectorAll("button"), p0 = fs[0], p1 = fs[fs.length - 1];
+        if (e.shiftKey && document.activeElement === p0) { e.preventDefault(); p1.focus(); }
+        else if (!e.shiftKey && document.activeElement === p1) { e.preventDefault(); p0.focus(); }
+      }
+      return;
+    }
+    var activo = e.target && e.target.closest ? e.target.closest("button, summary, a, input, select, textarea") : null;
+    var hecho = true;
+    if (k === "ArrowRight" || k === "PageDown") siguiente();
+    else if (k === "ArrowLeft" || k === "PageUp") anterior();
+    else if (k === " " && !activo) { if (e.shiftKey) anterior(); else siguiente(); }
+    else if (k === "Home") ir(0);
+    else if (k === "End") ir(N - 1);
+    else if (k === "ArrowDown") diaps[actual].scrollBy(0, 56);
+    else if (k === "ArrowUp") diaps[actual].scrollBy(0, -56);
+    else if (k === "f" || k === "F") pantallaCompleta();
+    else if (k === "g" || k === "G") abrirGeneral();
+    else hecho = false;
+    if (hecho) e.preventDefault();
+  });
+
+  // Toque: deslizar a los costados o tocar el borde izquierdo o derecho
+  var tx = null, ty = 0, objetivo = null;
+  function desplazable(el) {
+    while (el && el !== libro) {
+      if (el.scrollWidth > el.clientWidth + 1) {
+        var ox = getComputedStyle(el).overflowX;
+        if (ox === "auto" || ox === "scroll") return true;
+      }
+      el = el.parentElement;
+    }
+    return false;
+  }
+  libro.addEventListener("touchstart", function (e) {
+    if (e.touches.length !== 1) { tx = null; return; }
+    tx = e.touches[0].clientX; ty = e.touches[0].clientY; objetivo = e.target;
+  }, { passive: true });
+  libro.addEventListener("touchend", function (e) {
+    if (tx === null) return;
+    var t = e.changedTouches[0], dx = t.clientX - tx, dy = t.clientY - ty;
+    tx = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > 1.5 * Math.abs(dy)) {
+      if (!desplazable(objetivo)) { if (dx < 0) siguiente(); else anterior(); }
+      return;
+    }
+    if (Math.abs(dx) < 10 && Math.abs(dy) < 10 && !(objetivo && objetivo.closest && objetivo.closest("a, button, summary, details, input"))) {
+      var w = window.innerWidth;
+      if (t.clientX < w * 0.18) anterior();
+      else if (t.clientX > w * 0.82) siguiente();
+    }
+  }, { passive: true });
+
+  window.addEventListener("hashchange", segunHash);
+  if (!segunHash()) ir(0);
+})();
+</script>

@@ -1,0 +1,170 @@
+/* ==========================================================================
+   tp-a4.css - Trabajo Practico en HTML A4 (sistema v4). Mismo Markdown y mismo
+   JSON que el .docx de docx/construir_docx.py; se imprime a PDF con Firefox
+   (herramientas/imprimir_a4.py), asi un TP sale en HTML, PDF o Word.
+   --------------------------------------------------------------------------
+   Carga: fuentes.html -> tokens -> este, mas
+     --include-in-header=incluir/a4-pagina.html            (antes de Paged.js)
+     --include-in-header=incluir/paged-init.html  (nunca por CDN)
+     --lua-filter=incluir/tp.lua   --metadata-file=<tp>.json
+     -M espejo=false   (opcional, si no se imprime: margenes iguales en todas las hojas;
+                        ver incluir/espejo.lua; sin esto, doble faz espejada)
+     --include-after-body=incluir/formulas-rectas.html
+   Doble faz con los margenes de carpeta (tokens.css, --hoja-*):
+   interior 20 mm, exterior 10 mm, superior 15 mm, inferior 5 mm. La cabeza de
+   hoja vive en el margen superior: "Hoja n de N" del lado exterior y el
+   trabajo del lado interior (tp.lua escribe el texto del trabajo). La caratula
+   (modelo habitual) es la hoja 1 y no lleva cabeza. Siempre clara.
+   Tinta y un solo acento azul (numeros y referencias); verde solo en el
+   resultado, siempre con la palabra "Resultado". Nada de fondos de color.
+   ========================================================================== */
+:root {
+  --t-cuerpo: var(--hoja-cuerpo);   /* 12 pt: el tamano vive en tokens.css */
+  --t-nota: 9.8pt;
+  --interlinea: 1.38;
+}
+
+@page {
+  size: A4;
+  margin: 15mm 10mm 5mm 20mm;
+}
+/* Pagina impar (derecha): el interior es el borde izquierdo */
+@page :right {
+  margin-left: 20mm;
+  margin-right: 10mm;
+  @top-right { content: "Hoja " counter(page) " de " counter(pages); font-family: "Estudio Sans", sans-serif; font-size: 8pt; color: var(--tinta); vertical-align: bottom; padding-bottom: 3.5mm; }
+}
+/* Pagina par (izquierda): espejada */
+@page :left {
+  margin-left: 10mm;
+  margin-right: 20mm;
+  @top-left { content: "Hoja " counter(page) " de " counter(pages); font-family: "Estudio Sans", sans-serif; font-size: 8pt; color: var(--tinta); vertical-align: bottom; padding-bottom: 3.5mm; }
+}
+/* La caratula (hoja 1) no lleva cabeza de hoja */
+@page caratula {
+  @top-left { content: none; }
+  @top-right { content: none; }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--f-texto);
+  font-size: var(--t-cuerpo);
+  line-height: var(--interlinea);
+  font-kerning: normal;
+  font-variant-numeric: lining-nums proportional-nums;
+  text-align: justify;      /* texto justificado y sin guionado */
+  hyphens: none;
+}
+h1, h2, h3, th, td, .encabezado { text-align: left; }
+::selection { background: var(--seleccion); }
+p { margin: 0 0 5pt; }
+* { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+img { max-width: 100%; }
+.num { color: var(--azul); }
+
+/* ---------------- Caratula (modelo habitual) ---------------- */
+.caratula { page: caratula; break-after: page; padding-top: 50mm; }
+/* Logo opcional: ocupa la franja superior que sin logo queda en blanco (50 mm), dentro del area util */
+.caratula.con-logo { padding-top: 0; }
+.caratula .logo { display: block; width: auto; max-width: 100%; margin: 0 0 calc(50mm - var(--logo-alto, 22mm)); }
+.caratula .marco { font-size: 11pt; color: var(--lapiz); margin: 0 0 2pt; }
+.caratula .tp-enc { font-size: 15pt; margin: 0 0 8pt; }
+.caratula .numero {
+  display: inline-block;
+  min-width: 20mm;
+  color: var(--azul);
+  font-weight: 700;
+  border-bottom: .6pt solid var(--tinta);
+  text-align: center;
+}
+.caratula .tp-titulo {
+  font-size: 13pt;
+  font-weight: 800;
+  line-height: 1.25;
+  min-height: 1.25em;
+  margin: 0;
+  padding-bottom: 7pt;
+  border-bottom: 2.25pt solid var(--tinta);
+}
+.caratula .campos { margin-top: 20mm; }
+.caratula .campo { display: flex; align-items: flex-end; gap: 3mm; margin: 0 0 9pt; font-size: 12pt; }
+.caratula .etq { flex: 0 0 44mm; }
+.caratula .valor { flex: 1 1 auto; min-height: 1.4em; font-weight: 700; border-bottom: .6pt solid var(--tinta); }
+/* Tabla de integrantes: "Apellido y nombre" y "Legajo", una fila por integrante, rejilla fina */
+.caratula .campos { margin-bottom: 14pt; }
+.caratula table.integrantes { width: 100%; margin: 0; font-size: 12pt; line-height: 1.3; border: 1.2pt solid var(--tinta); break-inside: avoid; }
+.integrantes th, .integrantes td { padding: 4pt 6pt; border: .5pt solid var(--tinta); text-align: left; vertical-align: middle; }
+.integrantes th { font-weight: 700; border-bottom: 1pt solid var(--tinta); }
+.integrantes th:last-child, .integrantes td:last-child { padding-right: 6pt; width: 30%; }
+.integrantes tbody tr + tr td { border-top: .5pt solid var(--tinta); }
+.integrantes td { height: 10mm; font-weight: 700; }
+
+/* ---------------- Cuerpo ---------------- */
+.salto { break-after: page; height: 0; }
+h1, h2, h3 { font-weight: 800; line-height: 1.22; margin: 0; break-after: avoid; }
+h1 { position: relative; padding-left: 9mm; font-size: 16pt; margin: 18pt 0 5pt; }
+h2 { position: relative; padding-left: 9mm; font-size: 13.5pt; margin: 13pt 0 4pt; }
+h3 { font-size: 12.5pt; margin: 10pt 0 3pt; }
+h1 .num, h2 .num { position: absolute; left: 0; }
+h1:first-child { margin-top: 0; }
+.tp > :first-child { margin-top: 0; }
+ul, ol { margin: 2pt 0 6pt; padding-left: 16pt; }
+li { margin: 2pt 0 0; }
+li > p { margin: 0 0 2pt; }
+.ref { color: var(--azul); }
+
+/* Enunciado fiel, supuestos y resultados */
+.enunciado { margin: 0 0 6pt 6mm; break-inside: avoid; }
+.enunciado p { margin: 0 0 5pt; }
+.supuesto { font-size: 10.6pt; font-style: italic; color: var(--lapiz); margin: 6pt 0; }
+.supuesto p, .resultado p { margin: 0 0 2pt; }
+.rotulo { font-weight: 700; }
+.resultado { margin: 6pt 0; color: var(--verde); font-weight: 700; break-inside: avoid; }
+.resultado .rotulo { font-style: italic; }
+.resultado math { font-weight: 700; }
+
+/* ---------------- Figuras y tablas ---------------- */
+/* .4 mm de aire arriba: Firefox imprime una imagen a pagina completa 0,2 mm por encima de su caja
+   y, al abrir una hoja, invadia el margen superior (regla 22). */
+figure { margin: 8pt 0 6pt; padding-top: .4mm; text-align: center; break-inside: avoid; }
+figure img { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+figcaption, caption { font-size: var(--t-nota); line-height: 1.32; color: var(--lapiz); }
+figcaption { margin-top: 3pt; text-align: justify; }   /* epigrafes justificados, no centrados */
+figcaption strong, caption strong { color: var(--tinta); }
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 6pt 0 8pt;
+  font-size: 10.6pt;
+  line-height: 1.32;
+  font-variant-numeric: lining-nums tabular-nums;
+  border-top: 1.5pt solid var(--tinta);
+  border-bottom: 1.5pt solid var(--tinta);
+  break-inside: avoid;
+}
+caption { caption-side: top; text-align: justify; padding: 0 0 4pt; }
+th { font-weight: 700; text-align: left; vertical-align: bottom; border-bottom: 1pt solid var(--tinta); }
+th, td { padding: 2.5pt 8pt 2.5pt 0; overflow-wrap: break-word; text-align: left; }
+td { vertical-align: top; }
+tbody tr + tr td { border-top: .5pt solid var(--filete); }
+th:last-child, td:last-child { padding-right: 0; }
+/* linea vertical entre columnas */
+th + th, td + td { border-left: .5pt solid var(--filete); padding-left: 8pt; }
+
+/* ---------------- Formulas ---------------- */
+math { font-family: var(--f-mate); }
+math[display="block"] { font-size: 1.12em; display: block math; text-align: left; margin: 2pt 0; }
+p:has(> math[display="block"]) { margin: 4pt 0; }
+math:not([display="block"]) mfrac { math-style: normal; font-size: .9em; }
+
+/* ---------------- Codigo ---------------- */
+code { font-family: var(--f-codigo); font-size: .92em; }
+pre { font-family: var(--f-codigo); font-size: 9pt; line-height: 1.3; margin: 5pt 0; white-space: pre-wrap; break-inside: avoid; }
+
+/* Paged.js marca con text-align-last: justify todo bloque partido entre hojas */
+div[data-split-to], li[data-split-to], ol[data-split-to], ul[data-split-to], td[data-split-to], p[data-split-to] { text-align-last: auto !important; }

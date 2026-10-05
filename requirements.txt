@@ -1,0 +1,11 @@
+# Bibliotecas de Python del Ayudante Universitario (pip install -r requirements.txt)
+pymupdf        # leer PDF, extraer figuras, medir márgenes
+numpy          # cálculos y ajustes
+sympy          # verificación simbólica
+matplotlib     # gráficos
+pillow         # imágenes
+fonttools      # fuentes del sistema visual
+lxml           # generación de .docx
+# Opcionales:
+# docling      # OCR y reconocimiento de fórmulas en PDF escaneados (roles/analista-fuente.md)
+# pypandoc_binary   # trae Pandoc incluido si tu sistema solo ofrece una versión vieja

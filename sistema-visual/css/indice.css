@@ -1,0 +1,27 @@
+/* indice.css - solo para indice.html (la pagina que muestra el sistema).
+   Muestras de color, especimen de letra y miniaturas de las capturas. */
+.muestra {
+  display: inline-block;
+  width: .95em;
+  height: .95em;
+  margin-right: .4em;
+  vertical-align: -.12em;
+  background: var(--m);
+  border: 1px solid var(--filete);
+}
+.especimen { font-size: 1.15em; line-height: 1.4; margin: .2em 0 !important; text-indent: 0 !important; }
+.especimen.grande { font-size: 2.6em; font-weight: 800; letter-spacing: -.012em; line-height: 1.1; margin-top: .6em !important; }
+.especimen.italica { font-style: italic; }
+.miniaturas { margin: 1.6em calc(-1 * (var(--margen) + var(--hueco))) 1em 0; }
+.miniaturas p { display: flex; gap: 2%; align-items: flex-start; text-indent: 0 !important; }
+.miniaturas img { border: 1px solid var(--filete); height: auto; }
+table code { font-size: .92em; }
+td:nth-child(2) { white-space: nowrap; }
+h1.apertura.unnumbered { margin-left: 0 !important; }
+
+/* ---- Impresion: margenes de carpeta (tokens.css, --hoja-*),
+   A4 a doble faz espejada. var() no funciona en @page: valores literales,
+   la regla 23 de verificar_reglas.py comprueba que coincidan con tokens.css. */
+@page { size: A4; margin: 15mm 10mm 5mm 20mm; }
+@page :right { margin-left: 20mm; margin-right: 10mm; }
+@page :left { margin-left: 10mm; margin-right: 20mm; }

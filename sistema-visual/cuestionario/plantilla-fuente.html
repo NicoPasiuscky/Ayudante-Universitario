@@ -1,0 +1,1426 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>{{TITULO_PAGINA}}</title>
+<style>
+/*@@FUENTES@@*/
+</style>
+<style>
+/* Acento recibido del flujo `cuestionario`: {{ACCENT}}. Desde el sistema v4 el
+   acento es fijo (azul birome, version para fondo oscuro) y no cambia por
+   materia; el marcador se conserva para que la skill funcione sin cambios. */
+/*@@CSS@@*/
+</style>
+</head>
+<body>
+<!-- Plantilla de cuestionario, sistema v4. Fuente editable: esta pagina.
+     La arma cuestionario/construir_plantilla.py (fuentes y css/cuestionario.css
+     incrustados). Marcadores que completa el flujo `cuestionario`:
+     {{ACCENT}}, {{TITULO_PAGINA}}, {{KICKER}}, {{H1}}, {{PREGUNTA_HERO}},
+     {{LEDE}}, {{QUIZ_LEN}}, {{LS_KEY}} y el bloque CUESTIONARIO_JSON.
+     Mismo formato de banco y mismas claves de localStorage que la v3 (los
+     bancos viejos de mc-single, mc-multi y tf siguen andando sin cambios).
+
+     Formato del banco (ver tambien roles/cuestionador.md). Toda pregunta:
+       id, unit, type, question, explanation
+     y, opcionales en cualquier pregunta o parte:
+       table:  {caption, head:[...], rows:[[...]], foot:[...], align:["l","r",...]}  (o una lista de tablas)
+       figure: {svg:"<svg ...>", caption, alt}   (o una lista; el SVG usa currentColor y var(--azul), var(--rojo), var(--verde))
+       media:  lista ordenada de {table:...} / {figure:...}, si importa el orden entre tablas y figuras
+     Tipos:
+       mc-single   options (3 a 5), correct:[i]
+       mc-multi    options (hasta 10), correct:[i, j, ...]   (todo o nada; con "partial": true, o window.MULTI_PARCIAL = true
+                   en el banco, nota parcial: suma 1/k por cada correcta marcada y resta 1/(n-k) por cada incorrecta, sin bajar de 0)
+       Una opcion puede ser un texto o un objeto {text, table, figure} (elegir entre tablas o graficos). Si todas las opciones
+       llevan un text numerado («Tabla 1», «Histograma 2»), no se mezclan: ponelas en el orden que corresponda a las letras.
+       tf          options ["Verdadero","Falso"], correct:[0 o 1]
+       numeric     answer (numero), tolerance (por defecto 0.0001), decimals (por defecto 4), answerUnit (unidad de medida que se muestra junto al campo, opcional; no confundir con unit, el numero de unidad del tema)
+       tf-items    items:[{text, correct:true|false}]   (nota parcial por item)
+       cloze       question con [[1]], [[2]]... y blanks:[{options:[...], correct:i}]   (nota parcial por hueco; opciones en texto plano)
+       group       question (enunciado comun) y parts:[{type, question, ...}]   (partes de cualquier tipo salvo group; peso opcional "weight")
+     Formulas: en cualquier texto, entre signos $...$ (TeX basico: \frac, \sqrt, \binom, _ ^, \bar, \hat,
+     \sum, letras griegas, \le \ge \ne \cdot \cup \cap, \text{...}); se dibujan como MathML, letra recta.
+     No usar $ para otra cosa. Un salto de linea en el texto se respeta. -->
+<div class="shell">
+  <header class="topbar fila">
+    <div class="cuerpo">
+      <p class="kicker">{{KICKER}}</p>
+      <h1>{{H1}}</h1>
+      <p class="bank-info" id="bankInfo"></p>
+    </div>
+  </header>
+
+  <!-- ================= INICIO ================= -->
+  <section id="screen-start" class="fila">
+    <div class="cuerpo">
+      <h2 class="hero-title">{{PREGUNTA_HERO}}</h2>
+      <p class="lede">{{LEDE}}</p>
+      <p class="unit-legend" id="unitLegend"></p>
+      <ul class="reglas">
+        <li><span class="rot" id="ruleLenTitle">N preguntas por intento</span>, elegidas al azar de la base completa cada vez que empezás.</li>
+        <li><span class="rot" id="ruleTypesTitle">Opción múltiple y verdadero o falso.</span> <span id="ruleTypesText">Algunas piden una sola respuesta; otras, marcar todas las correctas.</span></li>
+        <li><span class="rot">Corrección al final.</span> En los dos modos, al terminar ves tu nota sobre 10 y el repaso agrupado por tipo de error, con la respuesta correcta y por qué.</li>
+        <li><span class="rot">Vuelve lo que te costó.</span> En el modo Práctica, lo que respondiste mal aparece más seguido en los próximos intentos; queda guardado solo en este dispositivo.</li>
+      </ul>
+
+      <fieldset class="campo-modo">
+        <legend class="campo-leyenda">Elegí el modo</legend>
+        <div class="options modos" role="radiogroup">
+          <label class="option">
+            <input type="radio" name="modo" value="practica" checked>
+            <span class="mark" aria-hidden="true"></span>
+            <span class="otext"><b>Práctica.</b> Sin límite de tiempo; podés ir y volver entre preguntas. Repite más seguido lo que te costó.</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="modo" value="parcial">
+            <span class="mark" aria-hidden="true"></span>
+            <span class="otext"><b>Parcial.</b> Con tiempo límite que elegís vos, como un examen. No repasa ni cambia lo que te costó.</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="parcial-config" id="parcialConfig" hidden>
+        <p class="cfg-titulo" id="tiempoTitulo">Tiempo disponible</p>
+        <div class="tiempos" role="radiogroup" aria-labelledby="tiempoTitulo">
+          <label class="tiempo"><input type="radio" name="tiempo" value="30"><span>30 min</span></label>
+          <label class="tiempo"><input type="radio" name="tiempo" value="60" checked><span>60 min</span></label>
+          <label class="tiempo"><input type="radio" name="tiempo" value="90"><span>90 min</span></label>
+          <label class="tiempo"><input type="radio" name="tiempo" value="120"><span>120 min</span></label>
+        </div>
+        <div class="tiempo-libre">
+          <label for="minLibre">O escribí los minutos que quieras</label>
+          <input id="minLibre" type="text" inputmode="numeric" autocomplete="off" maxlength="3" aria-describedby="minError">
+        </div>
+        <p class="error-tiempo" id="minError" role="alert" hidden></p>
+        <label class="interruptor">
+          <input type="checkbox" id="chkVolver" checked>
+          <span class="caja" aria-hidden="true"></span>
+          <span>Permitir volver a preguntas anteriores</span>
+        </label>
+        <p class="cfg-nota" id="cfgNota"></p>
+      </div>
+
+      <div class="reanudar" id="resumeBox" hidden>
+        <p id="resumeText"></p>
+        <div class="reanudar-acciones">
+          <button class="btn btn-primary" id="btnResume">Retomar el parcial</button>
+          <button class="btn btn-quiet" id="btnDiscard">Descartarlo</button>
+        </div>
+      </div>
+
+      <p class="best-score" id="bestScoreBox" hidden>Mejor nota en Práctica: <b id="bestScoreVal"></b></p>
+      <p class="best-score" id="bestParcialBox" hidden>Mejor nota en Parcial: <b id="bestParcialVal"></b></p>
+      <button class="btn btn-primary" id="btnStart">Comenzar intento</button>
+    </div>
+  </section>
+
+  <!-- ================= PREGUNTAS ================= -->
+  <section id="screen-quiz" hidden>
+    <div class="fila">
+      <div class="cuerpo progreso">
+        <div class="progress-top">
+          <span>Pregunta <b id="qPos">1</b> de <b id="qTotal">20</b></span>
+          <span id="answeredCount">0 respondidas</span>
+          <span class="timer" id="timerBox" role="timer" hidden>Tiempo restante <b id="timerVal"></b> <span class="timer-aviso" id="timerWarn" aria-live="polite"></span></span>
+        </div>
+        <div class="progress-bar" role="progressbar" aria-label="Preguntas respondidas"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        <div class="navigator" id="navigator" role="tablist" aria-label="Navegador de preguntas"></div>
+      </div>
+    </div>
+
+    <div class="fila">
+      <div class="num-margen qnum" id="qNumBig" aria-hidden="true">1</div>
+      <div class="cuerpo">
+        <p class="qmeta"><span id="qUnitBadge"></span>, <span id="qTypeBadge">opción múltiple</span></p>
+        <p class="qtext" id="qText"></p>
+        <div class="qmedia" id="qMedia"></div>
+        <div class="cuerpo-pregunta" id="qOptions" role="group"></div>
+        <div class="quiz-actions">
+          <div class="side">
+            <button class="btn" id="btnPrev">Anterior</button>
+            <button class="btn" id="btnNext">Siguiente</button>
+          </div>
+          <button class="btn btn-quiet" id="btnClear">Borrar respuesta</button>
+        </div>
+        <div class="finish-bar">
+          <p id="finishHint">Podés terminar cuando quieras, aunque falten preguntas por responder.</p>
+          <button class="btn btn-primary" id="btnFinish">Terminar intento</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= RESULTADOS ================= -->
+  <section id="screen-results" hidden>
+    <div class="fila">
+      <div class="cuerpo results-summary">
+        <div class="nota-bloque"><span class="nota-final" id="ringLabel">0</span><span class="nota-sobre">sobre 10</span></div>
+        <h2 id="resultsTitle">Resultado del intento</h2>
+        <p id="resultsSub">Revisá el detalle debajo.</p>
+        <p id="resultsMode" class="results-mode"></p>
+        <table class="conteo">
+          <tr><td class="s s-bien" aria-hidden="true">✓</td><td class="l">Correctas</td><td class="n" id="statCorrect">0</td></tr>
+          <tr><td class="s s-mal" aria-hidden="true">✗</td><td class="l">Incorrectas</td><td class="n" id="statWrong">0</td></tr>
+          <tr><td class="s s-parcial" aria-hidden="true">✗</td><td class="l">Parcialmente correctas</td><td class="n" id="statPartial">0</td></tr>
+          <tr><td class="s s-vacia" aria-hidden="true">–</td><td class="l">Sin responder</td><td class="n" id="statSkipped">0</td></tr>
+        </table>
+        <p class="stat-note" id="statNote">Una selección múltiple con solo algunas de las opciones correctas, o con alguna de más, cuenta como incorrecta para la nota. En las preguntas con varios ítems o huecos, cada ítem suma su parte.</p>
+      </div>
+    </div>
+
+    <div id="reviewBlock">
+      <div class="fila"><h2 class="review-title cuerpo">Repaso de lo que falló</h2></div>
+      <div class="review-list" id="reviewList"></div>
+    </div>
+
+    <div class="fila">
+      <div class="cuerpo results-actions">
+        <button class="btn btn-primary" id="btnRetry">Nuevo intento</button>
+        <button class="btn" id="btnHome">Cambiar de modo</button>
+        <button class="btn" id="btnReviewAll">Ver el intento completo</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="modal-overlay" id="confirmModal" hidden>
+  <div class="modal-card" role="alertdialog" aria-labelledby="confirmTitle" aria-describedby="confirmBody">
+    <h3 id="confirmTitle">¿Terminar el intento?</h3>
+    <p id="confirmBody">Todavía tenés preguntas sin responder. Se van a contar como incorrectas en el resultado final.</p>
+    <div class="modal-actions">
+      <button class="btn" id="btnModalCancel">Seguir respondiendo</button>
+      <button class="btn btn-primary" id="btnModalConfirm">Terminar de todos modos</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* CUESTIONARIO_JSON_START */
+window.QUESTIONS = [];
+/* CUESTIONARIO_JSON_END */
+</script>
+<script>
+(function(){
+  "use strict";
+
+  var QUESTIONS = window.QUESTIONS || [];
+  var QUIZ_LEN = {{QUIZ_LEN}};
+  var LS_KEY = "{{LS_KEY}}";
+
+  function unitLabel(u){
+    if(u === "parcial" || u === "parciales") return "Parcial";
+    return "Unidad " + u;
+  }
+  function unitKeys(){
+    var seen = {}, order = [];
+    QUESTIONS.forEach(function(q){ if(!seen[q.unit]){ seen[q.unit]=true; order.push(q.unit); } });
+    order.sort(function(a,b){ return String(a).localeCompare(String(b), undefined, {numeric:true}); });
+    return order;
+  }
+  var TYPE_NAMES = {"mc-single":"opción múltiple", "mc-multi":"selección múltiple", "tf":"verdadero o falso",
+                    "numeric":"respuesta numérica", "tf-items":"verdadero o falso por ítems",
+                    "cloze":"completar", "group":"varios ítems"};
+  // Solo presentacion: nombre de cada estado y orden de los grupos del repaso.
+  var ESTADOS = {
+    wrong:      {texto:"Incorrecta",                      grupo:"Respuestas incorrectas"},
+    partial:    {texto:"Parcialmente correcta",           grupo:"Parcialmente correctas, o con selección incompleta o de más"},
+    unanswered: {texto:"Sin responder",                   grupo:"Sin responder"},
+    correct:    {texto:"Correcta",                        grupo:"Correctas"}
+  };
+  var ORDEN_GRUPOS = ["wrong", "partial", "unanswered", "correct"];
+  function estadoTexto(q, kind){
+    if(kind === "partial" && q.type === "mc-multi") return "Selección incompleta o de más";
+    return (ESTADOS[kind] || ESTADOS.wrong).texto;
+  }
+
+  // Modos: "practica" (sin limite de tiempo, SM-2 activo) y "parcial" (con tiempo
+  // elegido por el usuario, sin SM-2). Claves de localStorage propias del modo
+  // Parcial, separadas de las de Practica (que no cambian).
+  var PRACTICA = "practica", PARCIAL = "parcial";
+  var BEST_PARCIAL_KEY = LS_KEY + "_parcial";
+  var RUN_KEY = LS_KEY + "_parcial_intento";
+  var MIN_MINUTOS = 1, MAX_MINUTOS = 300;
+
+  var state = { pool: [], answers: {}, current: 0, finished: false, fullReviewMode:false,
+                mode: PRACTICA, back: true, minutes: 0, startAt: 0, deadline: 0, expired: false };
+  var timerId = null;
+
+  var el = {};
+  ["screen-start","screen-quiz","screen-results","btnStart","unitLegend","bestScoreBox","bestScoreVal",
+   "bestParcialBox","bestParcialVal","parcialConfig","minLibre","minError","chkVolver","cfgNota","resumeBox",
+   "resumeText","btnResume","btnDiscard","timerBox","timerVal","timerWarn","resultsMode","btnHome",
+   "qPos","qTotal","answeredCount","progressFill","navigator","qUnitBadge","qTypeBadge","qText","qMedia","qOptions",
+   "btnPrev","btnNext","btnClear","btnFinish","finishHint","ringLabel","resultsTitle","resultsSub",
+   "statCorrect","statPartial","statWrong","statSkipped","reviewList","reviewBlock","btnRetry","btnReviewAll","bankInfo",
+   "confirmModal","btnModalCancel","btnModalConfirm","ruleLenTitle","ruleTypesTitle","ruleTypesText","qNumBig"
+  ].forEach(function(id){ el[id.replace(/-([a-z])/g, function(m,c){return c.toUpperCase();})] = document.getElementById(id); });
+
+  function byId(id){ return document.getElementById(id); }
+  el.screenStart = byId("screen-start");
+  el.screenQuiz = byId("screen-quiz");
+  el.screenResults = byId("screen-results");
+
+  // ---------- Texto con formulas: lo que va entre $...$ se dibuja como MathML ----------
+  // Un TeX basico (el que usan las materias con fórmulas), sin librerias ni recursos externos.
+  // Letra recta, como en el resto del sistema v4 (nada de cursiva).
+  var NS_MATE = "http://www.w3.org/1998/Math/MathML";
+  var GRIEGAS = {alpha:"α", beta:"β", gamma:"γ", delta:"δ", epsilon:"ε", varepsilon:"ε", theta:"θ", lambda:"λ",
+                 mu:"μ", nu:"ν", pi:"π", rho:"ρ", sigma:"σ", tau:"τ", phi:"φ", chi:"χ", omega:"ω",
+                 Gamma:"Γ", Delta:"Δ", Theta:"Θ", Lambda:"Λ", Pi:"Π", Sigma:"Σ", Phi:"Φ", Omega:"Ω"};
+  var SIMBOLOS = {le:"≤", leq:"≤", ge:"≥", geq:"≥", ne:"≠", neq:"≠", approx:"≈", cdot:"·", times:"×", pm:"±",
+                  cup:"∪", cap:"∩", emptyset:"∅", infty:"∞", "in":"∈", subset:"⊂", to:"→", Rightarrow:"⇒",
+                  Leftrightarrow:"⇔", int:"∫", circ:"°", ldots:"…", cdots:"⋯", mid:"∣", partial:"∂", nabla:"∇", div:"÷"};
+  var FUNCIONES = {Pr:1, sin:1, cos:1, tan:1, ln:1, log:1, exp:1, max:1, min:1, lim:1, det:1};
+
+  function nodoM(tag, texto){
+    var e = document.createElementNS(NS_MATE, tag);
+    if(texto !== undefined) e.textContent = texto;
+    return e;
+  }
+  function letraM(texto){ var e = nodoM("mi", texto); e.setAttribute("mathvariant", "normal"); return e; }
+  function filaM(nodos){ var r = nodoM("mrow"); nodos.forEach(function(n){ r.appendChild(n); }); return r; }
+  function espacioM(em){ var e = nodoM("mspace"); e.setAttribute("width", em + "em"); return e; }
+  function acentoM(base, signo){
+    var e = nodoM("mover"), a = nodoM("mo", signo);
+    a.setAttribute("accent", "true");
+    e.appendChild(base); e.appendChild(a);
+    return e;
+  }
+
+  function texAMathML(src){
+    var pos = 0, n = src.length;
+    function blancos(){ while(pos < n && /\s/.test(src.charAt(pos))) pos++; }
+    function secuencia(cierre){
+      var nodos = [];
+      blancos();
+      while(pos < n && src.charAt(pos) !== cierre){
+        var base = atomo();
+        blancos();
+        var sub = null, sup = null;
+        while(pos < n && (src.charAt(pos) === "_" || src.charAt(pos) === "^")){
+          var c = src.charAt(pos++);
+          var a = atomo();
+          if(c === "_") sub = a; else sup = a;
+          blancos();
+        }
+        nodos.push(conIndices(base, sub, sup));
+      }
+      return nodos;
+    }
+    function conIndices(base, sub, sup){
+      if(!sub && !sup) return base;
+      var grande = base.getAttribute && base.getAttribute("data-grande") === "1";
+      var tag = sub && sup ? (grande ? "munderover" : "msubsup") : sub ? (grande ? "munder" : "msub") : (grande ? "mover" : "msup");
+      var e = nodoM(tag);
+      e.appendChild(base);
+      if(sub) e.appendChild(sub);
+      if(sup) e.appendChild(sup);
+      return e;
+    }
+    function llaveCruda(){
+      blancos();
+      if(src.charAt(pos) !== "{") return src.charAt(pos++);
+      var prof = 0, ini = pos + 1;
+      while(pos < n){
+        var c = src.charAt(pos++);
+        if(c === "{") prof++;
+        else if(c === "}" && --prof === 0) return src.slice(ini, pos - 1);
+      }
+      return src.slice(ini);
+    }
+    function atomo(){
+      blancos();
+      if(pos >= n) return nodoM("mrow");
+      var c = src.charAt(pos);
+      if(c === "{"){
+        pos++;
+        var h = secuencia("}");
+        pos++;
+        return h.length === 1 ? h[0] : filaM(h);
+      }
+      if(c === "\\") return comando();
+      if(/[0-9]/.test(c)){
+        var d = /^[0-9]+(?:[.,][0-9]+)?/.exec(src.slice(pos));
+        pos += d[0].length;
+        return nodoM("mn", d[0]);
+      }
+      pos++;
+      if(/[A-Za-z]/.test(c)) return letraM(c);
+      if(c === "-") return nodoM("mo", "−");
+      if(c === "'") return nodoM("mo", "′");
+      return nodoM("mo", c);
+    }
+    function comando(){
+      pos++;
+      var m = /^[A-Za-z]+/.exec(src.slice(pos));
+      if(!m){
+        var ch = src.charAt(pos++);
+        if(ch === "," ) return espacioM(0.17);
+        if(ch === ";" || ch === " ") return espacioM(0.28);
+        if(ch === "!") return espacioM(0);
+        return nodoM("mo", ch);
+      }
+      var nombre = m[0];
+      pos += nombre.length;
+      var e;
+      switch(nombre){
+        case "frac": case "dfrac": case "tfrac": e = nodoM("mfrac"); e.appendChild(atomo()); e.appendChild(atomo()); return e;
+        case "sqrt": e = nodoM("msqrt"); e.appendChild(atomo()); return e;
+        case "binom":
+          e = nodoM("mfrac"); e.setAttribute("linethickness", "0"); e.appendChild(atomo()); e.appendChild(atomo());
+          return filaM([nodoM("mo", "("), e, nodoM("mo", ")")]);
+        case "bar": case "overline": return acentoM(atomo(), "¯");
+        case "hat": case "widehat": return acentoM(atomo(), "^");
+        case "tilde": return acentoM(atomo(), "˜");
+        case "vec": return acentoM(atomo(), "→");
+        case "text": return nodoM("mtext", llaveCruda());
+        case "mathrm": case "operatorname": return letraM(llaveCruda());
+        case "left": case "right":
+          blancos();
+          if(src.charAt(pos) === "."){ pos++; return nodoM("mrow"); }
+          return atomo();
+        case "quad": return espacioM(1);
+        case "sum": case "prod":
+          e = nodoM("mo", nombre === "sum" ? "∑" : "∏");
+          e.setAttribute("largeop", "true"); e.setAttribute("movablelimits", "true"); e.setAttribute("data-grande", "1");
+          return e;
+      }
+      if(GRIEGAS[nombre]) return letraM(GRIEGAS[nombre]);
+      if(SIMBOLOS[nombre]) return nodoM("mo", SIMBOLOS[nombre]);
+      if(FUNCIONES[nombre]) return letraM(nombre);
+      return nodoM("mtext", "\\" + nombre);
+    }
+    var mate = nodoM("math");
+    mate.setAttribute("display", "inline");
+    secuencia().forEach(function(x){ mate.appendChild(x); });
+    return mate;
+  }
+
+  // Texto plano con formulas entre $...$. Si los $ no cierran, se muestra todo como texto.
+  function rich(texto){
+    var frag = document.createDocumentFragment();
+    var trozos = String(texto === undefined || texto === null ? "" : texto).split("$");
+    if(trozos.length % 2 === 0){ frag.appendChild(document.createTextNode(trozos.join("$"))); return frag; }
+    trozos.forEach(function(t, i){
+      if(i % 2 === 0){ if(t) frag.appendChild(document.createTextNode(t)); return; }
+      try{ frag.appendChild(texAMathML(t)); }
+      catch(e){ frag.appendChild(document.createTextNode(t)); }
+    });
+    return frag;
+  }
+  function setRich(nodo, texto){ nodo.textContent = ""; nodo.appendChild(rich(texto)); }
+
+  // ---------- Tablas y figuras del enunciado ----------
+  function construirTabla(t){
+    var wrap = document.createElement("div");
+    wrap.className = "tabla-wrap";
+    var tabla = document.createElement("table");
+    tabla.className = "dato-tabla";
+    var ncols = (t.head ? t.head.length : (t.rows[0] || []).length);
+    function alin(i){ return "a-" + ((t.align && t.align[i]) || "r"); }
+    if(t.caption){
+      var cap = document.createElement("p");
+      cap.className = "tabla-cap";
+      setRich(cap, t.caption);
+      wrap.appendChild(cap);
+    }
+    function fila(celdas, tag, padre){
+      var tr = document.createElement("tr");
+      for(var i = 0; i < ncols; i++){
+        var c = document.createElement(tag);
+        c.className = alin(i);
+        if(tag === "th") c.scope = "col";
+        setRich(c, celdas[i] === undefined ? "" : celdas[i]);
+        tr.appendChild(c);
+      }
+      padre.appendChild(tr);
+    }
+    if(t.head){ var th = document.createElement("thead"); fila(t.head, "th", th); tabla.appendChild(th); }
+    var tb = document.createElement("tbody");
+    t.rows.forEach(function(r){ fila(r, "td", tb); });
+    tabla.appendChild(tb);
+    if(t.foot){ var tf = document.createElement("tfoot"); fila(t.foot, "td", tf); tabla.appendChild(tf); }
+    wrap.appendChild(tabla);
+    return wrap;
+  }
+  function construirFigura(f){
+    var fig = document.createElement("figure");
+    fig.className = "figura";
+    var caja = document.createElement("div");
+    caja.className = "figura-svg";
+    caja.innerHTML = f.svg;      // SVG escrito por el autor del banco, no entrada del usuario
+    if(f.alt){ caja.setAttribute("role", "img"); caja.setAttribute("aria-label", f.alt); }
+    fig.appendChild(caja);
+    if(f.caption){
+      var cap = document.createElement("figcaption");
+      setRich(cap, f.caption);
+      fig.appendChild(cap);
+    }
+    return fig;
+  }
+  // Una opcion es un texto, o un objeto {text, table, figure}: sirve para elegir entre tablas o graficos
+  function llenarContenido(nodo, opt){
+    if(typeof opt === "string"){ setRich(nodo, opt); return; }
+    nodo.textContent = "";
+    if(opt.text){ var t = elemento("span", "otext-linea"); setRich(t, opt.text); nodo.appendChild(t); }
+    adjuntarMedia(nodo, opt);
+  }
+  function adjuntarMedia(caja, o){
+    var lista = o.media ? o.media : [].concat(o.table || []).map(function(t){ return {table:t}; })
+                                      .concat([].concat(o.figure || []).map(function(f){ return {figure:f}; }));
+    lista.forEach(function(m){
+      if(m.table) caja.appendChild(construirTabla(m.table));
+      if(m.figure) caja.appendChild(construirFigura(m.figure));
+    });
+  }
+
+  function countsByUnit(){
+    var c = {};
+    QUESTIONS.forEach(function(q){ c[q.unit] = (c[q.unit]||0) + 1; });
+    return c;
+  }
+  function plural(n, uno, varios){ return n + " " + (n === 1 ? uno : varios); }
+  // Nota sobre 10 con coma decimal (el puntaje guardado sigue siendo el porcentaje de la v3)
+  function nota(pct){
+    var n = Math.round(pct) / 10;
+    return (n % 1 === 0 ? String(n) : n.toFixed(1)).replace(".", ",");
+  }
+
+  // ---------- Modelo de respuesta ----------
+  // Una pregunta es una "hoja" (mc-single, mc-multi, tf, numeric, tf-items, cloze) o un
+  // "group" de hojas con un enunciado comun. Todas puntuan de 0 a 1.
+  // Formato de lo respondido (state.answers[id]):
+  //   mc-single, mc-multi, tf   lista de indices elegidos (como siempre)
+  //   numeric                   texto escrito
+  //   tf-items                  lista de true (Verdadero), false (Falso) o null
+  //   cloze                     lista del indice elegido en cada hueco, o null
+  //   group                     lista con la respuesta de cada parte, o null
+  function decimales(h){ return h.decimals === undefined ? 4 : h.decimals; }
+  function leerNumero(s){
+    var t = String(s).trim().replace(/\s+/g, "").replace("−", "-").replace(",", ".");
+    return /^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(t) ? Number(t) : NaN;
+  }
+  function numeroOk(h, r){
+    var v = leerNumero(r);
+    var tol = h.tolerance === undefined ? 0.0001 : h.tolerance;
+    return !isNaN(v) && Math.abs(v - h.answer) <= tol + 1e-12;
+  }
+  function respondida(h, r){
+    if(r === undefined || r === null) return false;
+    switch(h.type){
+      case "group": return r.some(function(x, i){ return respondida(h.parts[i], x); });
+      case "numeric": return String(r).trim() !== "";
+      case "tf-items": case "cloze": return r.some(function(x){ return x !== null && x !== undefined; });
+      default: return r.length > 0;
+    }
+  }
+  function arraysEqualAsSets(a,b){
+    if(a.length!==b.length) return false;
+    var sa = a.slice().sort(), sb = b.slice().sort();
+    for(var i=0;i<sa.length;i++) if(sa[i]!==sb[i]) return false;
+    return true;
+  }
+  function puntaje(h, r){
+    if(!respondida(h, r)) return 0;
+    var i, ok;
+    switch(h.type){
+      case "numeric": return numeroOk(h, r) ? 1 : 0;
+      case "tf-items":
+        for(ok = 0, i = 0; i < h.items.length; i++) if(r[i] === h.items[i].correct) ok++;
+        return ok / h.items.length;
+      case "cloze":
+        for(ok = 0, i = 0; i < h.blanks.length; i++) if(r[i] === h.blanks[i].correct) ok++;
+        return ok / h.blanks.length;
+      case "group":
+        var suma = 0, peso = 0;
+        h.parts.forEach(function(p, k){ var w = p.weight || 1; peso += w; suma += w * puntaje(p, r[k]); });
+        return suma / peso;
+      case "mc-multi":
+        if(multiConPuntos(h)) return puntajeMulti(h, r);
+        return arraysEqualAsSets(r, h.correct) ? 1 : 0;
+      default: return arraysEqualAsSets(r, h.correct) ? 1 : 0;
+    }
+  }
+  // Seleccion multiple con nota parcial (como el campus de la facultad): cada opcion correcta
+  // marcada suma 1/k, cada incorrecta marcada resta 1/(n - k); no baja de 0 ni pasa de 1.
+  // Se activa con "partial": true en la pregunta o con window.MULTI_PARCIAL = true en el banco.
+  function multiConPuntos(h){ return h.type === "mc-multi" && (h.partial === true || (h.partial !== false && window.MULTI_PARCIAL === true)); }
+  function puntajeMulti(h, r){
+    var k = h.correct.length, m = h.options.length - k, s = 0;
+    r.forEach(function(i){ s += h.correct.indexOf(i) !== -1 ? 1 / k : -(m ? 1 / m : 0); });
+    return Math.max(0, Math.min(1, Math.round(s * 1e9) / 1e9));
+  }
+  // Solo presentacion: clasifica una respuesta para agruparla en el repaso. Una
+  // seleccion multiple con solo algunas correctas sigue valiendo 0 para la nota.
+  function clasificar(q, r){
+    if(!respondida(q, r)) return "unanswered";
+    var p = puntaje(q, r);
+    if(p === 1) return "correct";
+    if(p > 0) return "partial";
+    if(q.type === "mc-multi" && r.some(function(i){ return q.correct.indexOf(i) !== -1; })) return "partial";
+    return "wrong";
+  }
+
+  // Revisa el banco al cargar; los errores van a la consola, para quien arma el banco.
+  function validarBanco(){
+    var HOJAS = {"mc-single":1, "mc-multi":1, "tf":1, "numeric":1, "tf-items":1, "cloze":1};
+    function hoja(h, donde){
+      if(!HOJAS[h.type]){ console.error(donde + ": tipo desconocido " + h.type); return; }
+      if(h.type === "numeric" && typeof h.answer !== "number") console.error(donde + ": numeric sin answer numerico");
+      if(/^mc-|^tf$/.test(h.type)){
+        if(!h.options || !h.correct || !h.correct.length) console.error(donde + ": faltan options o correct");
+        else h.correct.forEach(function(i){ if(i < 0 || i >= h.options.length) console.error(donde + ": correct fuera de rango"); });
+      }
+      if(h.type === "tf-items" && (!h.items || !h.items.length)) console.error(donde + ": tf-items sin items");
+      if(h.type === "cloze"){
+        var marcas = (String(h.question).match(/\[\[\d+\]\]/g) || []).length;
+        if(!h.blanks || marcas !== h.blanks.length) console.error(donde + ": los [[n]] del enunciado no coinciden con blanks");
+        else h.blanks.forEach(function(b){ if(b.correct < 0 || b.correct >= b.options.length) console.error(donde + ": blank con correct fuera de rango"); });
+      }
+    }
+    var ids = {};
+    QUESTIONS.forEach(function(q){
+      if(ids[q.id]) console.error(q.id + ": id repetido");
+      ids[q.id] = true;
+      if(!q.explanation) console.error(q.id + ": falta explanation");
+      if(q.type === "group"){
+        if(!q.parts || !q.parts.length) console.error(q.id + ": group sin parts");
+        else q.parts.forEach(function(p, i){
+          if(p.type === "group") console.error(q.id + ": group dentro de group");
+          else hoja(p, q.id + " parte " + (i + 1));
+        });
+      } else hoja(q, q.id);
+    });
+  }
+
+  // Frase de reglas de la pantalla de inicio segun los tipos que tiene el banco
+  function renderReglasTipos(){
+    var presentes = {};
+    QUESTIONS.forEach(function(q){
+      presentes[q.type] = true;
+      if(q.type === "group") (q.parts || []).forEach(function(p){ presentes[p.type] = true; });
+    });
+    var orden = ["mc-single", "mc-multi", "tf", "numeric", "tf-items", "cloze", "group"];
+    var nombres = orden.filter(function(t){ return presentes[t]; }).map(function(t){
+      return t === "group" ? "enunciado común con varios ítems" : TYPE_NAMES[t];
+    });
+    if(!nombres.length) return;
+    var lista = nombres.length === 1 ? nombres[0] : nombres.slice(0, -1).join(", ") + " y " + nombres[nombres.length - 1];
+    el.ruleTypesTitle.textContent = lista.charAt(0).toUpperCase() + lista.slice(1) + ".";
+    var frases = [];
+    if(presentes["mc-multi"]) frases.push(window.MULTI_PARCIAL === true
+      ? "En la selección múltiple se marcan las correctas: cada una suma y cada incorrecta que marques resta."
+      : "En la selección múltiple hay que marcar todas las correctas.");
+    if(presentes["numeric"]) frases.push("En las numéricas se escribe el resultado con punto decimal.");
+    if(presentes["group"] || presentes["tf-items"] || presentes["cloze"]) frases.push("En las de varios ítems o huecos, cada uno suma su parte de la nota.");
+    el.ruleTypesText.textContent = frases.join(" ");
+  }
+
+  function renderLegend(){
+    var counts = countsByUnit();
+    var keys = unitKeys();
+    var partes = keys.map(function(u){ return unitLabel(u) + ", " + plural(counts[u]||0, "pregunta", "preguntas"); });
+    el.unitLegend.textContent = partes.length ? "Temas: " + partes.join("; ") + "." : "";
+    var n = Math.min(QUIZ_LEN, QUESTIONS.length);
+    el.ruleLenTitle.textContent = plural(n, "pregunta por intento", "preguntas por intento");
+    el.bankInfo.textContent = plural(QUESTIONS.length, "pregunta", "preguntas") + " en la base, de " +
+      plural(keys.length, "tema", "temas") + ".";
+    renderReglasTipos();
+  }
+
+  function loadBest(){
+    [[LS_KEY, el.bestScoreBox, el.bestScoreVal], [BEST_PARCIAL_KEY, el.bestParcialBox, el.bestParcialVal]].forEach(function(p){
+      try{
+        var v = localStorage.getItem(p[0]);
+        if(v !== null && !isNaN(parseInt(v,10))){
+          p[1].hidden = false;
+          p[2].textContent = nota(parseInt(v,10)) + " sobre 10";
+        }
+      }catch(e){}
+    });
+  }
+  function saveBest(key, pct){
+    try{
+      var v = localStorage.getItem(key);
+      if(v === null || pct > parseInt(v,10)){
+        localStorage.setItem(key, String(pct));
+      }
+    }catch(e){}
+  }
+
+  // ---------- Parcial en curso: se recuerda para no perderlo si se recarga ----------
+  function saveRun(){
+    if(state.mode !== PARCIAL || state.finished) return;
+    try{
+      localStorage.setItem(RUN_KEY, JSON.stringify({pool:state.pool, answers:state.answers, current:state.current,
+        back:state.back, minutes:state.minutes, startAt:state.startAt, deadline:state.deadline}));
+    }catch(e){}
+  }
+  function clearRun(){ try{ localStorage.removeItem(RUN_KEY); }catch(e){} }
+  function loadRun(){
+    try{
+      var r = JSON.parse(localStorage.getItem(RUN_KEY) || "null");
+      if(r && r.pool && r.pool.length && r.deadline && r.startAt && r.answers) return r;
+    }catch(e){}
+    return null;
+  }
+
+  // ---------- Temporizador: hora de inicio y hora limite, no un contador ----------
+  function pad2(n){ return (n < 10 ? "0" : "") + n; }
+  function formatoTiempo(ms, conHoras){
+    var s = Math.max(0, Math.ceil(ms/1000));
+    var h = Math.floor(s/3600), m = Math.floor(s%3600/60), r = s%60;
+    return (h || conHoras) ? h + ":" + pad2(m) + ":" + pad2(r) : pad2(m) + ":" + pad2(r);
+  }
+  function tick(){
+    if(state.mode !== PARCIAL || state.finished) return;
+    var left = state.deadline - Date.now();
+    if(left <= 0){ el.confirmModal.hidden = true; finishAttempt(true); return; }
+    el.timerVal.textContent = formatoTiempo(left, state.deadline - state.startAt >= 3600000);
+    // Poco tiempo: el 20 % del total o 5 minutos, lo que sea menor
+    var poco = left <= Math.min(300000, (state.deadline - state.startAt) * 0.2);
+    el.timerBox.classList.toggle("poco", poco);
+    var txt = poco ? "! Queda poco tiempo" : "";
+    if(el.timerWarn.textContent !== txt) el.timerWarn.textContent = txt;
+  }
+  function startTimer(){
+    stopTimer();
+    el.timerBox.hidden = false;
+    tick();
+    timerId = setInterval(tick, 1000);
+  }
+  function stopTimer(){
+    if(timerId !== null){ clearInterval(timerId); timerId = null; }
+    el.timerBox.hidden = true;
+    el.timerBox.classList.remove("poco");
+    el.timerWarn.textContent = "";
+  }
+  document.addEventListener("visibilitychange", tick);
+
+  // ---------- Pantalla de inicio: eleccion de modo y de tiempo ----------
+  function modoElegido(){ return document.querySelector('input[name="modo"]:checked').value; }
+  function minutosElegidos(){
+    var raw = el.minLibre.value.trim();
+    if(raw !== ""){
+      if(!/^[0-9]{1,3}$/.test(raw)) return null;
+      var n = parseInt(raw, 10);
+      return (n >= MIN_MINUTOS && n <= MAX_MINUTOS) ? n : null;
+    }
+    var r = document.querySelector('input[name="tiempo"]:checked');
+    return r ? parseInt(r.value, 10) : null;
+  }
+  function refreshStart(){
+    var parcial = modoElegido() === PARCIAL;
+    el.parcialConfig.hidden = !parcial;
+    var mins = minutosElegidos();
+    var raw = el.minLibre.value.trim();
+    el.minError.hidden = !(parcial && mins === null);
+    if(!el.minError.hidden){
+      el.minError.textContent = raw !== ""
+        ? "Escribí un número entero de minutos, de " + MIN_MINUTOS + " a " + MAX_MINUTOS + "."
+        : "Elegí uno de los tiempos o escribí los minutos.";
+    }
+    el.cfgNota.textContent = el.chkVolver.checked
+      ? "Podés saltar entre preguntas y cambiar respuestas, como en un parcial en papel."
+      : "Solo se avanza: no se puede volver a una pregunta que ya pasó.";
+    el.btnStart.disabled = parcial && mins === null;
+    el.btnStart.textContent = parcial
+      ? "Comenzar parcial" + (mins !== null ? " de " + plural(mins, "minuto", "minutos") : "")
+      : "Comenzar intento";
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="modo"]'), function(r){ r.addEventListener("change", refreshStart); });
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="tiempo"]'), function(r){
+    r.addEventListener("change", function(){ el.minLibre.value = ""; refreshStart(); });
+  });
+  el.minLibre.addEventListener("input", function(){
+    if(el.minLibre.value.trim() !== ""){
+      Array.prototype.forEach.call(document.querySelectorAll('input[name="tiempo"]'), function(r){ r.checked = false; });
+    }
+    refreshStart();
+  });
+  el.chkVolver.addEventListener("change", refreshStart);
+
+  function checkRun(){
+    var r = loadRun();
+    if(!r){ el.resumeBox.hidden = true; return; }
+    var left = r.deadline - Date.now();
+    el.resumeText.textContent = left > 0
+      ? "Tenés un parcial en curso: quedan " + formatoTiempo(left, r.deadline - r.startAt >= 3600000) + " de " + plural(r.minutes, "minuto", "minutos") + "."
+      : "Tenés un parcial cuyo tiempo se agotó. Se corrige con lo que habías respondido.";
+    el.btnResume.textContent = left > 0 ? "Retomar el parcial" : "Ver el resultado";
+    el.resumeBox.hidden = false;
+  }
+
+  // Repeticion espaciada (SM-2, el mismo algoritmo de Anki) para
+  // priorizar lo que mas cuesta entre intentos, guardado en este mismo
+  // dispositivo via localStorage; nunca se envia a ningun lado.
+  var SM2_KEY = LS_KEY + "_sm2";
+  var DAY_MS = 86400000;
+  function today(){ return Math.floor(Date.now() / DAY_MS); }
+  function loadSM2(){
+    try{
+      var raw = localStorage.getItem(SM2_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+  function saveSM2(map){
+    try{ localStorage.setItem(SM2_KEY, JSON.stringify(map)); }catch(e){}
+  }
+  function sm2StateFor(map, id){
+    return map[id] || { ease: 2.5, interval: 0, reps: 0, due: today() };
+  }
+  function sm2Update(state, quality){
+    // quality: 5 = correcta, 2 = incorrecta (mapeo simplificado del
+    // SM-2 original de 0-5, no hay autoevaluacion de confianza).
+    if(quality < 3){
+      state.reps = 0;
+      state.interval = 1;
+    } else {
+      state.reps += 1;
+      if(state.reps === 1) state.interval = 1;
+      else if(state.reps === 2) state.interval = 6;
+      else state.interval = Math.round(state.interval * state.ease);
+    }
+    state.ease = Math.max(1.3, state.ease + (0.1 - (5-quality) * (0.08 + (5-quality) * 0.02)));
+    state.due = today() + state.interval;
+    return state;
+  }
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var t=a[i]; a[i]=a[j]; a[j]=t;
+    }
+    return a;
+  }
+
+  function selectPool(n){
+    var sm2 = loadSM2();
+    var t = today();
+    var due = [], notDue = [];
+    QUESTIONS.forEach(function(q){
+      var st = sm2StateFor(sm2, q.id);
+      (st.due <= t ? due : notDue).push(q);
+    });
+    var chosen = shuffle(due).concat(shuffle(notDue)).slice(0, n);
+    return shuffle(chosen);
+  }
+
+  // Copia de la pregunta para el intento, con las opciones mezcladas (el orden de los
+  // items, de las partes y de Verdadero / Falso no se mezcla).
+  function mezclar(h){
+    if(h.type === "group"){ h.parts.forEach(mezclar); return; }
+    if(h.type === "mc-single" || h.type === "mc-multi"){
+      // Opciones numeradas por el autor («Tabla 1», «Histograma 2»): se conserva su orden
+      if(h.options.every(function(o){ return typeof o === "object" && /^\S+ \d+$/.test(o.text || ""); })) return;
+      var orden = shuffle(h.options.map(function(_, i){ return i; }));
+      h.correct = orden.reduce(function(acc, orig, nuevo){ if(h.correct.indexOf(orig) !== -1) acc.push(nuevo); return acc; }, []);
+      h.options = orden.map(function(i){ return h.options[i]; });
+    } else if(h.type === "cloze"){
+      h.blanks.forEach(function(b){
+        var o = shuffle(b.options.map(function(_, i){ return i; }));
+        b.correct = o.indexOf(b.correct);
+        b.options = o.map(function(i){ return b.options[i]; });
+      });
+    }
+  }
+  function copiaIntento(q){
+    var c = JSON.parse(JSON.stringify(q));
+    mezclar(c);
+    return c;
+  }
+
+  // Empieza un intento nuevo. "nuevo" trae el modo y el tiempo elegidos; sin
+  // argumento repite el modo y la configuracion del intento anterior.
+  function startAttempt(nuevo){
+    if(nuevo && nuevo.mode){
+      state.mode = nuevo.mode; state.back = nuevo.back; state.minutes = nuevo.minutes;
+    }
+    var n = Math.min(QUIZ_LEN, QUESTIONS.length);
+    state.pool = selectPool(n).map(copiaIntento);
+    state.answers = {};
+    state.current = 0;
+    state.finished = false;
+    state.fullReviewMode = false;
+    state.expired = false;
+    state.startAt = Date.now();
+    state.deadline = state.mode === PARCIAL ? state.startAt + state.minutes * 60000 : 0;
+    enterQuiz();
+    saveRun();
+  }
+
+  // Muestra la pantalla de preguntas para el estado actual (intento nuevo o retomado)
+  function enterQuiz(){
+    el.qTotal.textContent = state.pool.length;
+    el.btnReviewAll.hidden = false;
+    el.screenStart.hidden = true;
+    el.screenResults.hidden = true;
+    el.screenQuiz.hidden = false;
+    el.finishHint.textContent = state.mode === PARCIAL
+      ? "Podés terminar cuando quieras. Lo que falte responder cuenta como incorrecto."
+      : "Podés terminar cuando quieras, aunque falten preguntas por responder.";
+    if(state.mode === PARCIAL) startTimer(); else stopTimer();
+    buildNavigator();
+    renderQuestion();
+    window.scrollTo({top:0, behavior:"instant"});
+  }
+
+  // Parcial sin permiso para volver: solo se avanza de a una pregunta
+  function bloqueado(){ return state.mode === PARCIAL && !state.back; }
+
+  function buildNavigator(){
+    el.navigator.innerHTML = "";
+    state.pool.forEach(function(q,idx){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "navdot";
+      b.textContent = String(idx+1);
+      b.setAttribute("aria-label", "Pregunta " + (idx+1));
+      b.addEventListener("click", function(){ if(bloqueado()) return; state.current = idx; renderQuestion(); });
+      el.navigator.appendChild(b);
+    });
+  }
+
+  function updateNavigator(){
+    var dots = el.navigator.querySelectorAll(".navdot");
+    dots.forEach(function(d,idx){
+      d.classList.toggle("current", idx===state.current);
+      d.classList.toggle("answered", !!state.answers[state.pool[idx].id]);
+      d.disabled = bloqueado() && idx !== state.current;
+      d.setAttribute("aria-label", "Pregunta " + (idx+1) + (state.answers[state.pool[idx].id] ? ", respondida" : ""));
+    });
+    var cur = dots[state.current];
+    if(cur && cur.scrollIntoView && el.navigator.scrollWidth > el.navigator.clientWidth){
+      cur.scrollIntoView({block:"nearest", inline:"center"});
+    }
+  }
+
+  // Progreso y navegador, sin reconstruir la pregunta (para no perder el foco al escribir)
+  function refrescarProgreso(){
+    var answered = Object.keys(state.answers).length;
+    el.answeredCount.textContent = answered + " de " + state.pool.length + " respondidas";
+    el.progressFill.style.width = (answered/state.pool.length*100) + "%";
+    updateNavigator();
+    saveRun();
+  }
+
+  // ---------- Dibujo de cada tipo de pregunta ----------
+  function elemento(tag, clase, texto){
+    var e = document.createElement(tag);
+    if(clase) e.className = clase;
+    if(texto !== undefined) e.textContent = texto;
+    return e;
+  }
+  function pista(texto){ return elemento("p", "qhint", texto); }
+
+  function dibujarOpciones(caja, h, r, set, nombre){
+    var multi = h.type === "mc-multi";
+    var inputType = multi ? "checkbox" : "radio";
+    var cur = r ? r.slice() : [];
+    if(multi) caja.appendChild(pista(multiConPuntos(h)
+      ? "Marcá las opciones correctas: cada una suma y cada incorrecta que marques resta."
+      : "Marcá todas las opciones correctas."));
+    var lista = elemento("div", "options tipo-" + h.type);
+    var labels = [];
+    h.options.forEach(function(opt, idx){
+      var label = elemento("label", "option");
+      if(cur.indexOf(idx) !== -1) label.classList.add("is-selected");
+      var input = document.createElement("input");
+      input.type = inputType;
+      input.name = nombre;
+      input.value = idx;
+      input.checked = cur.indexOf(idx) !== -1;
+      input.addEventListener("change", function(){
+        if(inputType === "radio") cur = [idx];
+        else {
+          var pos = cur.indexOf(idx);
+          if(pos === -1) cur = cur.concat([idx]); else { cur = cur.slice(); cur.splice(pos, 1); }
+        }
+        labels.forEach(function(l, j){ l.classList.toggle("is-selected", cur.indexOf(j) !== -1); });
+        set(cur.slice());
+      });
+      var mark = elemento("span", "mark");
+      mark.setAttribute("aria-hidden", "true");
+      var otext = elemento("span", "otext");
+      llenarContenido(otext, opt);
+      label.appendChild(input);
+      label.appendChild(mark);
+      label.appendChild(otext);
+      labels.push(label);
+      lista.appendChild(label);
+    });
+    caja.appendChild(lista);
+  }
+
+  function dibujarNumerica(caja, h, r, set){
+    var d = decimales(h);
+    caja.appendChild(pista(d === 0
+      ? "Escribí el resultado como número entero."
+      : "Escribí el resultado con " + plural(d, "decimal", "decimales") + " y punto decimal, sin separador de miles."));
+    var fila = elemento("div", "num-resp");
+    var input = document.createElement("input");
+    input.type = "text";
+    input.setAttribute("inputmode", "decimal");
+    input.setAttribute("autocomplete", "off");
+    input.setAttribute("spellcheck", "false");
+    input.setAttribute("aria-label", "Tu resultado");
+    input.value = r || "";
+    input.addEventListener("input", function(){ set(input.value); });
+    fila.appendChild(input);
+    if(h.answerUnit){ var u = elemento("span", "unidad"); setRich(u, h.answerUnit); fila.appendChild(u); }
+    caja.appendChild(fila);
+  }
+
+  function dibujarVFItems(caja, h, r, set, nombre){
+    var cur = r ? r.slice() : h.items.map(function(){ return null; });
+    var lista = elemento("div", "vf-items");
+    h.items.forEach(function(it, i){
+      var fila = elemento("div", "vf-item");
+      fila.setAttribute("role", "radiogroup");
+      var tx = elemento("div", "vf-texto");
+      tx.appendChild(elemento("span", "vf-n", (i + 1) + "."));
+      var cuerpo = elemento("span");
+      setRich(cuerpo, it.text);
+      tx.appendChild(cuerpo);
+      fila.setAttribute("aria-label", "Ítem " + (i + 1));
+      fila.appendChild(tx);
+      var opc = elemento("div", "vf-opc");
+      [[true, "Verdadero"], [false, "Falso"]].forEach(function(par){
+        var lab = elemento("label", "vf-chip");
+        var input = document.createElement("input");
+        input.type = "radio";
+        input.name = nombre + "_" + i;
+        input.checked = cur[i] === par[0];
+        input.addEventListener("change", function(){ cur[i] = par[0]; set(cur.slice()); });
+        lab.appendChild(input);
+        lab.appendChild(elemento("span", null, par[1]));
+        opc.appendChild(lab);
+      });
+      fila.appendChild(opc);
+      lista.appendChild(fila);
+    });
+    caja.appendChild(lista);
+  }
+
+  // El enunciado de "completar" lleva los menus dentro del texto: [[1]], [[2]]...
+  function dibujarCloze(caja, h, r, set){
+    var cur = r ? r.slice() : h.blanks.map(function(){ return null; });
+    String(h.question).split(/\[\[(\d+)\]\]/).forEach(function(trozo, i){
+      if(i % 2 === 0){ caja.appendChild(rich(trozo)); return; }
+      var k = parseInt(trozo, 10) - 1;
+      var sel = elemento("select", "hueco");
+      sel.setAttribute("aria-label", "Hueco " + (k + 1));
+      sel.appendChild(new Option("elegí…", ""));
+      h.blanks[k].options.forEach(function(o, j){ sel.appendChild(new Option(o, String(j))); });
+      if(cur[k] !== null && cur[k] !== undefined){ sel.value = String(cur[k]); sel.classList.add("elegido"); }
+      sel.addEventListener("change", function(){
+        cur[k] = sel.value === "" ? null : parseInt(sel.value, 10);
+        sel.classList.toggle("elegido", sel.value !== "");
+        set(cur.slice());
+      });
+      caja.appendChild(sel);
+    });
+  }
+
+  function dibujarEnunciado(caja, h, r, set){
+    caja.textContent = "";
+    if(h.type === "cloze") dibujarCloze(caja, h, r, set);
+    else setRich(caja, h.question);
+  }
+  function dibujarCuerpo(caja, h, r, set, nombre){
+    switch(h.type){
+      case "numeric": dibujarNumerica(caja, h, r, set); break;
+      case "tf-items": dibujarVFItems(caja, h, r, set, nombre); break;
+      case "cloze": break;                                  // los menus ya estan en el enunciado
+      default: dibujarOpciones(caja, h, r, set, nombre);
+    }
+  }
+
+  function guardarRespuesta(q, valor){
+    if(respondida(q, valor)) state.answers[q.id] = valor; else delete state.answers[q.id];
+    refrescarProgreso();
+  }
+
+  function renderQuestion(){
+    var q = state.pool[state.current];
+    var r = state.answers[q.id];
+    el.qPos.textContent = state.current+1;
+    el.qNumBig.textContent = state.current+1;
+    el.qUnitBadge.textContent = unitLabel(q.unit);
+    el.qTypeBadge.textContent = TYPE_NAMES[q.type];
+
+    el.qMedia.textContent = "";
+    el.qOptions.textContent = "";
+    el.qOptions.className = "cuerpo-pregunta";
+    if(q.type === "group"){
+      dibujarEnunciado(el.qText, q, null, function(){});
+      adjuntarMedia(el.qMedia, q);
+      var partes = elemento("div", "partes");
+      var actual = r || q.parts.map(function(){ return null; });
+      q.parts.forEach(function(p, i){
+        var parte = elemento("div", "parte");
+        parte.appendChild(elemento("span", "parte-rot", String.fromCharCode(97 + i) + "."));
+        var cuerpo = elemento("div", "parte-cuerpo");
+        var set = function(valor){
+          var todo = (state.answers[q.id] || q.parts.map(function(){ return null; })).slice();
+          todo[i] = respondida(p, valor) ? valor : null;
+          guardarRespuesta(q, todo);
+        };
+        var enun = elemento("p", "parte-enun");
+        dibujarEnunciado(enun, p, actual[i], set);
+        cuerpo.appendChild(enun);
+        var media = elemento("div", "qmedia");
+        adjuntarMedia(media, p);
+        cuerpo.appendChild(media);
+        dibujarCuerpo(cuerpo, p, actual[i], set, "q_" + q.id + "_" + i);
+        parte.appendChild(cuerpo);
+        partes.appendChild(parte);
+      });
+      el.qOptions.appendChild(partes);
+    } else {
+      var set1 = function(valor){ guardarRespuesta(q, valor); };
+      dibujarEnunciado(el.qText, q, r, set1);
+      adjuntarMedia(el.qMedia, q);
+      dibujarCuerpo(el.qOptions, q, r, set1, "q_" + q.id);
+    }
+
+    el.btnPrev.hidden = bloqueado();
+    el.btnPrev.disabled = bloqueado() || state.current === 0;
+    el.btnNext.disabled = state.current === state.pool.length-1;
+    el.navigator.setAttribute("aria-label", bloqueado() ? "Progreso, sin volver atrás" : "Navegador de preguntas");
+    refrescarProgreso();
+  }
+
+  el.btnClear.addEventListener("click", function(){
+    var q = state.pool[state.current];
+    delete state.answers[q.id];
+    renderQuestion();
+  });
+
+  el.btnPrev.addEventListener("click", function(){
+    if(state.current>0){ state.current--; renderQuestion(); }
+  });
+  el.btnNext.addEventListener("click", function(){
+    if(state.current < state.pool.length-1){ state.current++; renderQuestion(); }
+  });
+
+  document.addEventListener("keydown", function(e){
+    if(el.screenQuiz.hidden) return;
+    var t = e.target;
+    // En un campo de texto o un menu, las flechas son del campo
+    if(t && (t.tagName === "SELECT" || t.tagName === "TEXTAREA" || (t.tagName === "INPUT" && t.type === "text"))) return;
+    if(e.key==="ArrowRight") el.btnNext.click();
+    if(e.key==="ArrowLeft" && !bloqueado()) el.btnPrev.click();
+  });
+
+  el.btnFinish.addEventListener("click", function(){
+    var answeredCount = Object.keys(state.answers).length;
+    var unanswered = state.pool.length - answeredCount;
+    if(unanswered > 0){
+      byId("confirmBody").textContent = "Tenés " + unanswered + " de " + state.pool.length +
+        (unanswered===1 ? " pregunta sin responder. Se va a contar" : " preguntas sin responder. Se van a contar") +
+        " como incorrecta" + (unanswered===1 ? "" : "s") + " en el resultado final.";
+      el.confirmModal.hidden = false;
+      el.btnModalConfirm.focus();
+      return;
+    }
+    finishAttempt();
+  });
+
+  el.btnModalCancel.addEventListener("click", function(){ el.confirmModal.hidden = true; });
+  el.btnModalConfirm.addEventListener("click", function(){ el.confirmModal.hidden = true; finishAttempt(); });
+  el.confirmModal.addEventListener("click", function(e){ if(e.target === el.confirmModal) el.confirmModal.hidden = true; });
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && !el.confirmModal.hidden) el.confirmModal.hidden = true;
+  });
+
+  function finishAttempt(vencido){
+    if(state.finished) return;
+    state.finished = true;
+    state.expired = vencido === true;
+    var finTs = Math.min(Date.now(), state.deadline || Date.now());
+    stopTimer();
+    clearRun();
+    var esParcial = state.mode === PARCIAL;
+    var correct=0, wrong=0, skipped=0, partial=0, puntos=0;
+    var reviewItems = [];
+    var sm2 = loadSM2();
+
+    state.pool.forEach(function(q, idx){
+      var sel = state.answers[q.id];
+      var kind = clasificar(q, sel);
+      if(kind === "unanswered"){
+        skipped++;
+        reviewItems.push({q:q, n:idx+1, sel:null, ok:false, kind:kind});
+        return;
+      }
+      var p = puntaje(q, sel);
+      puntos += p;
+      // El repaso espaciado solo se actualiza en Practica: el Parcial es una simulacion
+      if(!esParcial) sm2[q.id] = sm2Update(sm2StateFor(sm2, q.id), kind === "correct" ? 5 : 2);
+      if(kind === "correct") correct++;
+      else {
+        if(kind === "partial") partial++; else wrong++;
+        reviewItems.push({q:q, n:idx+1, sel:sel, ok:false, kind:kind});
+      }
+    });
+    if(!esParcial) saveSM2(sm2);
+
+    var pct = Math.round((puntos/state.pool.length)*100);
+    saveBest(esParcial ? BEST_PARCIAL_KEY : LS_KEY, pct);
+    if(esParcial){
+      var cH = state.deadline - state.startAt >= 3600000;
+      el.resultsMode.textContent = "Modo Parcial. Tiempo usado: " + formatoTiempo(finTs - state.startAt, cH) +
+        " de " + formatoTiempo(state.deadline - state.startAt, cH) + "." +
+        (state.expired ? " Se acabó el tiempo: se corrigió solo lo respondido y lo demás cuenta como incorrecto." : "") +
+        " No modifica el repaso espaciado.";
+    } else {
+      el.resultsMode.textContent = "Modo Práctica.";
+    }
+
+    el.statCorrect.textContent = correct;
+    el.statPartial.textContent = partial;
+    el.statWrong.textContent = wrong;
+    el.statSkipped.textContent = skipped;
+
+    var conPuntos = state.pool.some(function(q){ return multiConPuntos(q) || (q.parts || []).some(multiConPuntos); });
+    byId("statNote").textContent = conPuntos
+      ? "En una selección múltiple, cada opción correcta marcada suma y cada opción incorrecta marcada resta, sin bajar de cero. En las preguntas con varios ítems o huecos, cada ítem suma su parte."
+      : "Una selección múltiple con solo algunas de las opciones correctas, o con alguna de más, cuenta como incorrecta para la nota. En las preguntas con varios ítems o huecos, cada ítem suma su parte.";
+
+    el.ringLabel.textContent = nota(pct);
+    el.resultsTitle.textContent = plural(correct, "respuesta correcta", "respuestas correctas") + " de " + state.pool.length;
+    el.resultsSub.textContent = (wrong+skipped+partial===0) ? "Intento perfecto." :
+      "Debajo, lo que falló agrupado por tipo de error, con la respuesta correcta y por qué.";
+
+    el.reviewBlock.querySelector(".review-title").textContent = "Repaso de lo que falló";
+    renderReview(reviewItems);
+
+    el.screenQuiz.hidden = true;
+    el.screenResults.hidden = false;
+    window.scrollTo({top:0, behavior:"instant"});
+  }
+
+  function span(clase, texto){
+    var s = document.createElement("span");
+    s.className = clase;
+    if(texto !== undefined) s.textContent = texto;
+    return s;
+  }
+
+  // ---------- Repaso: lo que marcaste, la respuesta correcta y por que ----------
+  function filaRevision(cls, signo, letra, texto, tag){
+    var row = document.createElement("div");
+    row.className = "review-opt " + cls;
+    row.appendChild(span("signo", signo));
+    if(letra !== null) row.appendChild(span("letra", letra));
+    var t = span("txt");
+    llenarContenido(t, texto);
+    row.appendChild(t);
+    if(tag) row.appendChild(span("tag", tag));
+    return row;
+  }
+  function enunciadoRevision(nodo, h){
+    nodo.textContent = "";
+    if(h.type === "cloze"){
+      String(h.question).split(/\[\[(\d+)\]\]/).forEach(function(trozo, i){
+        if(i % 2 === 0) nodo.appendChild(rich(trozo));
+        else nodo.appendChild(span("hueco-marca", "(" + trozo + ")"));
+      });
+    } else setRich(nodo, h.question);
+  }
+  function revisarHoja(caja, h, r){
+    var i;
+    if(h.type === "numeric"){
+      var hay = respondida(h, r), ok = hay && numeroOk(h, r);
+      var unidad = h.answerUnit ? " " + h.answerUnit : "";
+      if(hay) caja.appendChild(filaRevision(ok ? "correct" : "wrong", ok ? "✓" : "✗", null, "Tu respuesta: " + String(r).trim() + unidad,
+        ok ? "bien" : "tu respuesta, incorrecta"));
+      else caja.appendChild(filaRevision("neutral", "", null, "Sin responder.", ""));
+      if(!ok) caja.appendChild(filaRevision("correct", "✓", null, "Respuesta correcta: " + h.answer.toFixed(decimales(h)) + unidad, "correcta"));
+      return;
+    }
+    if(h.type === "tf-items"){
+      h.items.forEach(function(it, k){
+        var v = r ? r[k] : null;
+        var nombreC = it.correct ? "Verdadero" : "Falso";
+        if(v === it.correct) caja.appendChild(filaRevision("correct", "✓", (k + 1) + ".", it.text, "bien marcada: " + nombreC));
+        else if(v === true || v === false)
+          caja.appendChild(filaRevision("wrong", "✗", (k + 1) + ".", it.text, "tu respuesta: " + (v ? "Verdadero" : "Falso") + ". Correcta: " + nombreC));
+        else caja.appendChild(filaRevision("missed", "✓", (k + 1) + ".", it.text, "sin responder. Correcta: " + nombreC));
+      });
+      return;
+    }
+    if(h.type === "cloze"){
+      h.blanks.forEach(function(b, k){
+        var v = r ? r[k] : null, letra = "(" + (k + 1) + ")", correcto = b.options[b.correct];
+        if(v === b.correct) caja.appendChild(filaRevision("correct", "✓", letra, correcto, "bien marcada"));
+        else if(v !== null && v !== undefined){
+          caja.appendChild(filaRevision("wrong", "✗", letra, b.options[v], "tu respuesta, incorrecta"));
+          caja.appendChild(filaRevision("correct", "✓", letra, correcto, "correcta"));
+        } else caja.appendChild(filaRevision("missed", "✓", letra, correcto, "sin responder. Correcta"));
+      });
+      return;
+    }
+    var sel = r || null;
+    h.options.forEach(function(opt, idx){
+      var isCorrect = h.correct.indexOf(idx) !== -1;
+      var wasSelected = sel ? sel.indexOf(idx) !== -1 : false;
+      var cls = "neutral", tag = "", signo = "";
+      if(isCorrect && wasSelected){ cls = "correct"; tag = "bien marcada"; signo = "✓"; }
+      else if(isCorrect){
+        var falto = !!sel && h.type === "mc-multi";
+        cls = falto ? "missed" : "correct"; tag = falto ? "faltó marcar" : "correcta"; signo = "✓";
+      }
+      else if(wasSelected){ cls = "wrong"; tag = "tu respuesta, incorrecta"; signo = "✗"; }
+      caja.appendChild(filaRevision(cls, signo, "(" + String.fromCharCode(97 + idx) + ")", opt, tag));
+    });
+  }
+
+  function renderItem(item){
+    var q = item.q;
+    var card = document.createElement("article");
+    card.className = "review-item fila estado-" + item.kind;
+
+    // Sangria: numero de la pregunta en el intento
+    var num = document.createElement("div");
+    num.className = "num-margen";
+    num.textContent = String(item.n || "");
+    card.appendChild(num);
+
+    var cuerpo = document.createElement("div");
+    cuerpo.className = "cuerpo";
+    var meta = document.createElement("p");
+    meta.className = "qmeta";
+    meta.textContent = unitLabel(q.unit) + ", " + TYPE_NAMES[q.type] + ". " + estadoTexto(q, item.kind) + ".";
+    cuerpo.appendChild(meta);
+
+    var qt = document.createElement("p");
+    qt.className = "review-q";
+    enunciadoRevision(qt, q);
+    cuerpo.appendChild(qt);
+    var media = elemento("div", "qmedia");
+    adjuntarMedia(media, q);
+    cuerpo.appendChild(media);
+
+    if(q.type === "group"){
+      q.parts.forEach(function(p, i){
+        var parte = elemento("div", "parte");
+        parte.appendChild(elemento("span", "parte-rot", String.fromCharCode(97 + i) + "."));
+        var pc = elemento("div", "parte-cuerpo");
+        var enun = elemento("p", "parte-enun");
+        enunciadoRevision(enun, p);
+        pc.appendChild(enun);
+        var m2 = elemento("div", "qmedia");
+        adjuntarMedia(m2, p);
+        pc.appendChild(m2);
+        revisarHoja(pc, p, item.sel ? item.sel[i] : null);
+        parte.appendChild(pc);
+        cuerpo.appendChild(parte);
+      });
+    } else revisarHoja(cuerpo, q, item.sel);
+    card.appendChild(cuerpo);
+
+    // Margen derecho: la correccion, como la anotacion del docente
+    var exp = document.createElement("aside");
+    exp.className = "review-explain al-margen";
+    var primero = true;
+    function agregar(letra, texto){
+      if(!texto) return;
+      var p = elemento("p", "exp-linea");
+      if(primero){ p.appendChild(span("por-que", "Por qué. ")); primero = false; }
+      if(letra) p.appendChild(span("exp-parte", letra + " "));
+      p.appendChild(rich(texto));
+      exp.appendChild(p);
+    }
+    agregar(null, q.explanation);
+    if(q.type === "group") q.parts.forEach(function(p, i){ agregar(String.fromCharCode(97 + i) + ".", p.explanation); });
+    card.appendChild(exp);
+    return card;
+  }
+
+  function renderReview(items){
+    el.reviewList.innerHTML = "";
+    if(items.length===0){
+      el.reviewBlock.querySelector(".review-title").hidden = true;
+      var fila = document.createElement("div");
+      fila.className = "fila";
+      var msg = document.createElement("p");
+      msg.className = "all-correct-note cuerpo";
+      msg.textContent = "Respondiste correctamente todas las preguntas de este intento.";
+      fila.appendChild(msg);
+      el.reviewList.appendChild(fila);
+      return;
+    }
+    el.reviewBlock.querySelector(".review-title").hidden = false;
+
+    // Agrupado por tipo de error, en orden fijo
+    ORDEN_GRUPOS.forEach(function(k){
+      var grupo = items.filter(function(it){ return it.kind === k; });
+      if(!grupo.length) return;
+      var fila = document.createElement("div");
+      fila.className = "fila";
+      var h = document.createElement("h3");
+      h.className = "grupo-titulo cuerpo";
+      h.appendChild(document.createTextNode(ESTADOS[k].grupo + " "));
+      h.appendChild(span("cuantas", "(" + grupo.length + ")"));
+      fila.appendChild(h);
+      el.reviewList.appendChild(fila);
+      grupo.forEach(function(item){ el.reviewList.appendChild(renderItem(item)); });
+    });
+  }
+
+  el.btnRetry.addEventListener("click", function(){ startAttempt(); });
+  el.btnHome.addEventListener("click", function(){
+    el.screenResults.hidden = true;
+    el.screenStart.hidden = false;
+    loadBest();
+    checkRun();
+    refreshStart();
+    window.scrollTo({top:0, behavior:"instant"});
+  });
+  el.btnResume.addEventListener("click", function(){ retomar(); });
+  el.btnDiscard.addEventListener("click", function(){ clearRun(); checkRun(); });
+
+  // Retoma un parcial guardado; si el tiempo ya se agoto, lo corrige con lo respondido
+  function retomar(){
+    var r = loadRun();
+    if(!r){ checkRun(); return; }
+    state.pool = r.pool; state.answers = r.answers; state.current = Math.min(r.current || 0, r.pool.length - 1);
+    state.mode = PARCIAL; state.back = r.back !== false; state.minutes = r.minutes;
+    state.startAt = r.startAt; state.deadline = r.deadline;
+    state.finished = false; state.fullReviewMode = false; state.expired = false;
+    enterQuiz();
+    if(Date.now() >= state.deadline) tick();
+  }
+  el.btnReviewAll.addEventListener("click", function(){
+    var items = state.pool.map(function(q, idx){
+      var sel = state.answers[q.id] || null;
+      return {q:q, n:idx+1, sel:sel, ok:false, kind: clasificar(q, sel)};
+    });
+    renderReview(items);
+    el.reviewBlock.querySelector(".review-title").textContent = "Intento completo";
+    el.btnReviewAll.hidden = true;
+  });
+
+  el.btnStart.addEventListener("click", function(){
+    var parcial = modoElegido() === PARCIAL;
+    var mins = minutosElegidos();
+    if(parcial && mins === null){ refreshStart(); return; }
+    startAttempt({mode: parcial ? PARCIAL : PRACTICA, back: el.chkVolver.checked, minutes: parcial ? mins : 0});
+  });
+
+  validarBanco();
+  renderLegend();
+  loadBest();
+  checkRun();
+  refreshStart();
+})();
+</script>
+
+</body>
+</html>
