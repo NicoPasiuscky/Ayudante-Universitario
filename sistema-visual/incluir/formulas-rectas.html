@@ -1,0 +1,21 @@
+<script>
+/* formulas-rectas.html - va con --include-after-body en los 3 formatos.
+   Igual que en la v3: formulas con letra recta. Firefox pone en cursiva
+   toda variable de una letra (<mi>x</mi>) y eso no se anula con CSS; se
+   agrega mathvariant="normal" a cada <mi> sin uno propio. Tambien quita
+   el espacio que MathML deja despues de la coma decimal (5{,}0).
+   Corre antes de que Paged.js pagine (formato Hoja A4). Sin internet. */
+(function () {
+  var i, mis = document.querySelectorAll("math mi:not([mathvariant])");
+  for (i = 0; i < mis.length; i++) mis[i].setAttribute("mathvariant", "normal");
+  var mos = document.querySelectorAll("math mo");
+  for (i = 0; i < mos.length; i++) {
+    var mo = mos[i], a = mo.previousElementSibling, d = mo.nextElementSibling;
+    // el siguiente puede ser un numero con exponente o subindice (0^{\circ}): su base es <mn>
+    var dn = d && /^(msup|msub|msubsup)$/.test(d.localName) ? d.firstElementChild : d;
+    if (mo.textContent === "," && a && dn && a.localName === "mn" && dn.localName === "mn") {
+      mo.setAttribute("lspace", "0"); mo.setAttribute("rspace", "0");
+    }
+  }
+})();
+</script>

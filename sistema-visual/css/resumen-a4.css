@@ -1,0 +1,112 @@
+/* ==========================================================================
+   resumen-a4.css - Formato "Hoja A4" con Paged.js (sistema v4)
+   --------------------------------------------------------------------------
+   Carga: fuentes.html -> tokens -> resumen-base -> este, mas
+     --include-in-header=incluir/a4-pagina.html            (antes de Paged.js)
+     --include-in-header=incluir/paged-init.html (nunca por CDN)
+     -M formato=a4    (el filtro abre plegables y manda la practica a hoja aparte)
+     -M modo=extenso|corto   (el corto ocupa menos hojas que el extenso; sin tope fijo)
+     -M espejo=false         (opcional, si no se imprime: margenes iguales en todas las hojas; ver
+                              incluir/espejo.lua. Sin esto, doble faz espejada como abajo)
+   Nunca --toc.
+
+   Doble faz con los margenes de carpeta : interior 20 mm (perforar y encarpetar), exterior
+   10 mm, superior 15 mm, inferior 5 mm. Caja de texto calculada, no a ojo:
+   210 - 20 - 10 = 180 mm; de eso 11 mm de sangria para los numeros
+   colgados quedan 169 mm: el texto corrido (parrafos, definiciones,
+   ejemplos, ojo, listas, tablas, formula clave y ecuaciones, con el numero
+   de la ecuacion en el extremo derecho) ocupa todo ese ancho.
+   Las figuras y los bloques con nota al margen conservan el esquema de dos
+   columnas de siempre: 120 mm de cuerpo + 5 mm de hueco + 44 mm de columna
+   de margen (epigrafes, notas, supuestos). Se logra con --reserva: 0 (el
+   texto usa todo el ancho) y figure y .con-nota con su grilla de 2 columnas
+   sobre ese mismo ancho (resumen-base.css). Caracteres por linea: ver
+   capturas/medidas.json.
+   Con 5 mm abajo no entra un pie: la cabeza de hoja (margen superior, a
+   unos 11 mm del borde) lleva solo "Hoja n de N" del lado exterior y la
+   seccion vigente del lado interior; ya no lleva sigla ni unidad (la
+   unidad va en el encabezado del documento, junto a la materia). Nada del contenido sale
+   de la caja de la hoja (regla 22, verificar_reglas.py). El margen inferior
+   es el parametro a subir si una impresora corta el borde.
+   La Hoja A4 es SIEMPRE clara, en pantalla y al imprimir, y no lleva boton de
+   modo claro u oscuro: carga solo tokens.css (claro), sin tokens-oscuro.css ni
+   tema.html.
+   ========================================================================== */
+:root {
+  --t-cuerpo: var(--hoja-cuerpo);   /* 12 pt: el tamano vive en tokens.css */
+  --t-nota: 9.5pt;
+  --t-h1: 23pt;
+  --t-h2: 14.4pt;
+  --t-h3: 11.8pt;
+  --t-numeral: 54pt;
+  --interlinea: 1.38;
+  --sangria: 11mm;
+  --margen: 44mm;
+  --hueco: 5mm;
+  --reserva: 0mm;       /* el texto corrido usa todo el ancho; figuras y notas, su columna */
+  --texto: 169mm;       /* 180 - sangria; el cuerpo con nota al margen mide 169 - 49 = 120 mm */
+}
+
+@page {
+  size: A4;
+  margin: 15mm 10mm 5mm 20mm;
+}
+/* Pagina impar (derecha): el interior es el borde izquierdo. Numero de hoja
+   del lado exterior, en el margen superior (sin sigla ni unidad). */
+@page :right {
+  margin-left: 20mm;
+  margin-right: 10mm;
+  @top-right { content: "Hoja " counter(page) " de " counter(pages); font-family: "Estudio Sans", sans-serif; font-size: 8pt; color: var(--tinta); vertical-align: bottom; padding-bottom: 3.5mm; }
+  @top-left { content: string(seccion); font-family: "Estudio Sans", sans-serif; font-style: italic; font-size: 8pt; color: var(--lapiz); vertical-align: bottom; padding-bottom: 3.5mm; }
+}
+/* Pagina par (izquierda): espejada */
+@page :left {
+  margin-left: 10mm;
+  margin-right: 20mm;
+  @top-left { content: "Hoja " counter(page) " de " counter(pages); font-family: "Estudio Sans", sans-serif; font-size: 8pt; color: var(--tinta); vertical-align: bottom; padding-bottom: 3.5mm; }
+  @top-right { content: string(seccion); font-family: "Estudio Sans", sans-serif; font-style: italic; font-size: 8pt; color: var(--lapiz); vertical-align: bottom; padding-bottom: 3.5mm; }
+}
+/* Primera hoja (impar): sin la seccion; el numero de hoja queda */
+@page :first {
+  @top-left { content: none; }
+}
+
+h2 { string-set: seccion content(text); }
+
+.encabezado { margin-bottom: 9mm; }
+/* El numeral grande (54 pt, interlinea .78) asoma unos 4 mm por encima de la caja
+   de texto: en la primera linea de una hoja invadia el margen superior. */
+h1.apertura { padding-top: 4.6mm; }
+/* Modo corto: mas denso, para repasar (menos hojas que el extenso; sin tope fijo) */
+.modo-corto { --antes-seccion: 2.1em; --entre-bloques: .8em; --antes-sintesis: 1.2em; }
+.modo-corto .encabezado { margin-bottom: 6mm; }
+
+/* Tablas y formula clave tambien ocupan todo el ancho; en la clave,
+   el numero de la ecuacion va al extremo derecho. */
+.tabla table { width: 100%; }
+.clave { width: 100%; }
+.clave .ecuacion math[display="block"] { flex: 1; }
+
+body { text-align: justify; hyphens: none; }   /* justificado y sin guionado, como los TP */
+h1, h2, h3, th, td, caption, figcaption, .par-notas, dt, .encabezado, .colgado, summary { text-align: left; hyphens: none; }
+/* linea vertical entre columnas, como los TP */
+th + th, td + td { border-left: .5pt solid var(--filete); padding-left: .6em; }
+.colgado, .errores li::before { text-align: right; }
+
+/* Lo que no se parte entre hojas. El par texto-nota va entero: la nota
+   nunca queda en otra hoja que su parrafo. */
+h1, h2, h3 { break-after: avoid; }
+table, figure, .enunciado, .ecuacion, .clave, pre, .con-nota, .sintesis, .errores li, .ojo, .glosario dt, .practica ol, .resolucion-impresa { break-inside: avoid; }
+.hoja-aparte { break-before: page; }
+.sintesis { break-before: avoid; }
+/* El salto de hoja entre unidades lo pone estudio.lua con un .hoja-aparte vacio antes de cada # (desde el segundo): con break-before en el h1, Firefox deja en blanco la primera hoja de cada unidad al imprimir. */
+
+/* Paged.js marca con text-align-last: justify todo bloque partido entre
+   hojas. El envoltorio .libro siempre se parte y la regla se heredaba a
+   titulos, tablas y listas de la hoja siguiente: se corta en el envoltorio. */
+.libro[data-split-to], .libro[data-split-from] { text-align-last: auto !important; }
+li[data-split-to], td[data-split-to], ol[data-split-to], ul[data-split-to], div[data-split-to] { text-align-last: auto !important; }
+
+a { text-decoration: none; }
+a.ref { color: inherit; }
+* { -webkit-print-color-adjust: exact; print-color-adjust: exact; }

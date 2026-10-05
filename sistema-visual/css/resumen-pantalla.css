@@ -1,0 +1,44 @@
+/* ==========================================================================
+   resumen-pantalla.css - Anchos del formato "HTML completo" (compu, tableta
+   y celular). El A4 y las diapositivas no lo cargan.
+   --------------------------------------------------------------------------
+   Compu: sangria + texto + margen. Por debajo de 70rem no entra la columna
+   de margen: notas y epigrafes pasan debajo de su bloque, con sangria. Por
+   debajo de 42rem (celular) tampoco entra la sangria: numeros, rotulos
+   colgados y aspas van en la linea.
+   ========================================================================== */
+@media (max-width: 70rem) {
+  :root { --margen: 0px; --hueco: 0px; }
+  .con-nota, figure { display: block; margin-right: 0; }
+  .par-notas { margin: .5em 0 .2em 1.3em; }
+  figcaption { margin-top: .5em; }
+  h1.apertura { margin-right: 0; }
+}
+
+@media (max-width: 42rem) {
+  :root {
+    --sangria: 0px;
+    --t-cuerpo: 18px;
+    --t-nota: 15px;
+    --t-h1: 1.9rem;
+    --t-h2: 1.3rem;
+    --t-numeral: 3.9rem;
+  }
+  h2 .num { width: auto; margin-left: 0; margin-right: .4em; }
+  .colgado { position: static; display: inline; width: auto; font-size: 1em; margin-right: .3em; line-height: inherit; }
+  .colgado::after { content: "."; }
+  .errores li, .ojo { padding-left: 1.35em; }
+  .errores li::before, .ojo::before { left: 0; width: 1.1em; text-align: left; }
+  .glosario dl { display: block; }
+  .glosario dd { margin: 0 0 .6em; }
+  table { font-size: var(--t-nota); }
+  th, td { padding-right: .6em; }
+  .tabla { overflow-x: auto; }
+  /* formulas anchas (varias en una linea) se desplazan dentro de su bloque, no desbordan la pagina */
+  .clave, p:has(> math[display="block"]) { max-width: 100%; overflow-x: auto; }
+  .tema-boton { position: absolute; top: .6rem; right: .6rem; font-size: 13px; padding: .35em .6em; }
+  h1.apertura .numeral { min-width: 0; padding-right: .18em; }
+  /* Figuras: la letra del SVG crece para seguir legible al achicarse */
+  figure svg.grafico text { font-size: 19px; }
+  figure svg.grafico text.eje { font-size: 18px; }
+}

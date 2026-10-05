@@ -1,0 +1,315 @@
+/* ==========================================================================
+   resumen-base.css - Sistema v4. Comun a los 3 formatos de resumen (completo, a4,
+   diapositivas) y a sus dos modos (extenso, corto).
+   --------------------------------------------------------------------------
+   Pagina de libro de catedra: a la izquierda una sangria donde cuelgan los
+   numeros de seccion, los rotulos (Sintesis, Practica) y las marcas de
+   error; en el centro la columna de texto; a la derecha una columna de
+   margen que trabaja (notas, supuestos, epigrafes). La estructura la arma
+   incluir/estudio.lua; este archivo solo la dibuja.
+   Sin cajas por tipo de bloque, sin fondos de color, sin rotulos en
+   mayuscula. Un solo recuadro: la formula clave (.clave).
+   El caracter esta concentrado en la apertura de la unidad (numeral grande
+   en azul, titulo en negra extra y un filete grueso) y en los numeros
+   colgados; todo lo demas queda tranquilo.
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--f-texto);
+  font-size: var(--t-cuerpo);
+  line-height: var(--interlinea);
+  font-kerning: normal;
+  font-variant-numeric: lining-nums proportional-nums;
+  hyphens: manual;
+}
+::selection { background: var(--seleccion); }
+
+/* ---------- Caja: sangria + texto + margen ---------- */
+.libro {
+  position: relative;
+  padding-left: calc(var(--borde-hoja, 0px) + var(--sangria));
+  padding-right: calc(var(--borde-hoja, 0px) + var(--reserva));
+}
+.libro::after { content: ""; display: block; clear: both; }
+
+/* ---------- Encabezado: solo materia y unidad ---------- */
+.encabezado { margin: 0 calc(-1 * var(--reserva)) 3.2em 0; font-size: var(--t-nota); line-height: 1.3; }
+.encabezado p { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0 .55em; margin: 0; text-indent: 0 !important; }
+.enc-materia { font-weight: 700; }
+.enc-sep, .enc-unidad { color: var(--lapiz); }
+
+/* ---------- Indice (-M indice=true): despues del encabezado ---------- */
+.indice { margin: -1.2em 0 3.4em; font-size: var(--t-nota); line-height: 1.35; }
+.indice p { margin: 0 0 .5em; text-indent: 0 !important; }
+.indice .i-unidad { font-weight: 700; margin-bottom: .2em; }
+.indice .i-seccion { padding-left: 1.7em; margin: .15em 0; }
+.indice .numeral, .indice .num { color: var(--azul); font-weight: 700; margin-right: .4em; font-variant-numeric: tabular-nums; }
+.indice a { text-decoration: none; }
+.indice a:hover { text-decoration: underline; }
+
+/* ---------- Apertura de la unidad: el unico lugar audaz ---------- */
+h1, h2, h3 { color: var(--tinta); text-wrap: balance; hyphens: none; }
+h1.apertura {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  margin-left: calc(-1 * var(--sangria)) !important;
+  font-size: var(--t-h1);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -.012em;
+  margin: 0 calc(-1 * var(--reserva)) 1.5em 0;
+  padding-bottom: .42em;
+  border-bottom: 3px solid var(--tinta);
+}
+/* El numeral cuelga en la sangria: el titulo queda alineado con el texto */
+h1.apertura .numeral {
+  flex: 0 0 auto;
+  min-width: var(--sangria);
+  padding-right: .09em;
+  text-align: right;
+  font-size: var(--t-numeral);
+  font-weight: 800;
+  line-height: .78;
+  letter-spacing: -.03em;
+  color: var(--azul);
+  font-variant-numeric: lining-nums;
+}
+
+/* ---------- Secciones: numero colgado en azul ---------- */
+h2 {
+  font-size: var(--t-h2);
+  font-weight: 700;
+  line-height: 1.22;
+  margin: var(--antes-seccion) 0 var(--despues-seccion);
+}
+h2 .num {
+  display: inline-block;
+  width: var(--sangria);
+  margin-left: calc(-1 * var(--sangria));
+  color: var(--azul);
+  font-weight: 800;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+h2.unnumbered { font-size: calc(var(--t-h2) * .9); }
+h3 {
+  font-size: var(--t-h3);
+  font-weight: 500;
+  font-style: italic;
+  line-height: 1.3;
+  margin: 1.8em 0 .35em;
+}
+
+/* ---------- Parrafos: sangria de libro entre parrafos seguidos ---------- */
+p { margin: 0; }
+p + p { text-indent: 1.3em; }
+/* Sin sangria en una formula en bloque ni en el parrafo que la sigue */
+p:has(> math[display="block"]), p:has(> math[display="block"]) + p { text-indent: 0; }
+.libro p { orphans: 3; widows: 3; }
+
+ul, ol, dl, table, figure, pre, .enunciado, .ecuacion, .tabla, .con-nota { margin-top: var(--entre-bloques); margin-bottom: var(--entre-bloques); }
+.con-nota .enunciado, .con-nota .ecuacion, .par-texto > p { margin-top: 0; margin-bottom: 0; }
+
+/* ---------- Listas ---------- */
+ol, ul { padding-left: 1.4em; }
+ul { list-style: "– "; }
+li { margin: .2em 0; }
+li > p { margin: 0; }
+ol > li::marker { font-variant-numeric: lining-nums tabular-nums; }
+
+/* ---------- Rotulos en linea (regla 10) ---------- */
+.rotulo { font-weight: 700; }
+.enunciado { position: relative; }
+.enunciado p + p { text-indent: 0; margin-top: .45em; }
+.rotulo-bloque { font-weight: 700; font-style: italic; }
+
+/* Rotulo colgado en la sangria: Sintesis, Practica */
+.colgado {
+  position: absolute;
+  left: calc(-1 * var(--sangria));
+  width: calc(var(--sangria) - .7em);
+  text-align: right;
+  font-style: italic;
+  font-weight: 500;
+  font-size: .8em;
+  line-height: 1.75;
+  color: var(--lapiz);
+  text-indent: 0;
+}
+
+/* ---------- Sintesis al pie de la seccion ---------- */
+.sintesis {
+  position: relative;
+  margin: var(--antes-sintesis) 0 0;
+  padding-top: .55em;
+  border-top: 1px solid var(--filete);
+  font-size: .95em;
+}
+.sintesis p + p { text-indent: 0; margin-top: .3em; }
+
+/* ---------- Formula clave: el unico recuadro ---------- */
+.clave {
+  width: fit-content;
+  max-width: 100%;
+  margin: 1.3em 0 1.4em;
+  padding: .35em 1.3em;
+  border: 1.6px solid var(--tinta);
+}
+.clave .ecuacion { margin: 0; }
+.clave .ecuacion > p:first-child { margin: .3em 0; gap: 2.2em; }
+
+/* ---------- Ecuaciones ---------- */
+.ecuacion > p:first-child { display: flex; align-items: center; margin: .9em 0 .8em; }
+.ecuacion math[display="block"] { flex: 1; margin: 0; }
+.clave .ecuacion math[display="block"] { flex: none; }
+.ec-num { color: var(--lapiz); font-variant-numeric: lining-nums tabular-nums; }
+math { font-family: var(--f-mate); }
+math[display="block"] { font-size: 1.12em; margin: .8em 0; }
+/* Fraccion en linea (unidades): tamaño legible, no de indice */
+math:not([display="block"]) mfrac { math-style: normal; font-size: .9em; }
+
+/* ---------- Errores frecuentes: aspa roja colgada (y palabra, regla 17) ---------- */
+.errores { margin: 1.5em 0 0; }
+.errores ul { list-style: none; padding-left: 0; margin-top: .3em; }
+.errores li { position: relative; margin: .35em 0; }
+.errores li::before, .ojo::before {
+  content: "✗";
+  position: absolute;
+  left: calc(-1 * var(--sangria));
+  width: calc(var(--sangria) - .7em);
+  text-align: right;
+  font-family: var(--f-marcas);
+  font-size: 1.05em;
+  line-height: 1.35;
+  color: var(--rojo);
+}
+
+/* ---------- Ojo (modo corto): el error tipico, una o dos lineas, aspa roja colgada ---------- */
+.ojo { position: relative; margin: var(--entre-bloques) 0; }
+.ojo p + p { text-indent: 0; margin-top: .3em; }
+
+/* ---------- Glosario ---------- */
+.glosario dl {
+  display: grid;
+  grid-template-columns: minmax(8rem, max-content) minmax(0, 1fr);
+  column-gap: 1.4em;
+  row-gap: .45em;
+  align-items: baseline;
+}
+.glosario dt { font-weight: 700; }
+.glosario dd { margin: 0; }
+dd > p { margin: 0; }
+
+/* ---------- Tablas ---------- */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: var(--t-nota);
+  line-height: 1.32;
+  font-variant-numeric: lining-nums tabular-nums;
+  border-top: 1.5px solid var(--tinta);
+  border-bottom: 1.5px solid var(--tinta);
+}
+caption { caption-side: top; text-align: left; padding-bottom: .45em; color: var(--tinta); }
+th { font-weight: 700; text-align: left; vertical-align: bottom; border-bottom: 1px solid var(--tinta); }
+th, td { padding: .4em 1em .4em 0; overflow-wrap: break-word; }
+td { vertical-align: top; }
+tbody tr + tr td { border-top: 1px solid var(--filete); }
+th:last-child, td:last-child { padding-right: 0; }
+.tabla table { width: auto; min-width: min(100%, 22rem); }
+#tbl\:comparacion table, .tabla.ancha table { width: 100%; }
+
+/* ---------- Figuras: epigrafe al margen ---------- */
+figure {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--margen);
+  column-gap: var(--hueco);
+  align-items: end;
+  margin-left: 0;
+  margin-right: calc(-1 * var(--reserva));
+}
+figure > p, figure > svg, figure > img { grid-column: 1; margin: 0; }
+figure svg, figure img { display: block; max-width: 100%; height: auto; }
+figure svg { color: var(--tinta); font-family: var(--f-texto); }
+figcaption { grid-column: 2; font-size: var(--t-nota); line-height: 1.3; color: var(--lapiz); }
+figcaption .rotulo { color: var(--tinta); }
+figcaption p { margin: 0; }
+
+/* ---------- Notas al margen, pegadas a su bloque ---------- */
+.con-nota {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--margen);
+  column-gap: var(--hueco);
+  align-items: start;
+  margin-right: calc(-1 * var(--reserva));
+}
+.par-texto { grid-column: 1; min-width: 0; }
+.par-notas { grid-column: 2; font-size: var(--t-nota); line-height: 1.32; padding-top: .15em; }
+.par-notas .nota + .nota { margin-top: .6em; }
+.par-notas p { margin: 0; text-indent: 0; }
+.con-nota + p { text-indent: 0; }
+.nota-ref {
+  font-size: .68em;
+  line-height: 0;
+  vertical-align: .55em;
+  color: var(--azul);
+  font-weight: 700;
+  margin-left: .06em;
+}
+.nota-num { color: var(--azul); font-weight: 700; }
+
+/* ---------- Plegables: ejemplos resueltos y demostraciones ---------- */
+details.plegable { margin: .5em 0 .2em; }
+details.plegable > summary {
+  cursor: pointer;
+  width: fit-content;
+  color: var(--azul);
+  font-weight: 500;
+}
+details.plegable > summary:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+details.plegable[open] > summary { color: var(--lapiz); margin-bottom: .4em; }
+details.plegable p + p { text-indent: 0; margin-top: .4em; }
+.resolucion-impresa .rotulo-res { font-style: italic; }
+
+/* ---------- Practica: opcional, separada del texto de la fuente ---------- */
+.practica {
+  position: relative;
+  margin: 2.2em 0;
+  padding: .7em 0 .8em;
+  border-top: 1px dashed var(--lapiz);
+  border-bottom: 1px dashed var(--lapiz);
+}
+.aviso-practica { color: var(--lapiz); font-style: italic; }
+.practica ol { margin: .4em 0 0; }
+
+/* ---------- Codigo ---------- */
+code, pre { font-family: var(--f-codigo); font-size: .84em; }
+pre { padding: .5em 0 .5em 1.1em; border-top: 1px solid var(--filete); border-bottom: 1px solid var(--filete); overflow-x: auto; line-height: 1.45; }
+pre code { font-size: 1em; }
+
+/* ---------- Enlaces y referencias cruzadas ---------- */
+a { color: inherit; text-decoration-thickness: .06em; text-underline-offset: .16em; }
+a.ref { color: var(--azul); text-decoration: none; }
+a.ref:hover { text-decoration: underline; }
+:target { background: var(--seleccion); }
+
+hr { border: 0; border-top: 1px solid var(--filete); margin: 2em 0; }
+img { max-width: 100%; }
+
+@media print {
+  details.plegable > summary { display: none; }
+  a.ref { color: inherit; }
+}
+
+/* ---- Impresion: margenes de carpeta (tokens.css, --hoja-*),
+   A4 a doble faz espejada. var() no funciona en @page: valores literales,
+   la regla 23 de verificar_reglas.py comprueba que coincidan con tokens.css. */
+@page { size: A4; margin: 15mm 10mm 5mm 20mm; }
+@page :right { margin-left: 20mm; margin-right: 10mm; }
+@page :left { margin-left: 10mm; margin-right: 20mm; }

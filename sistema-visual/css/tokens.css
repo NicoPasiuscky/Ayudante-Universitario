@@ -1,0 +1,87 @@
+﻿/* ==========================================================================
+   tokens.css - Sistema visual v4 (version unificada final)
+   --------------------------------------------------------------------------
+   Una sola identidad para resumenes, cuestionarios y parciales. Base:
+   direccion A "Libro de cátedra" (notas al margen sin cajas, un solo
+   acento, jerarquia tipografica), con mas caracter en titulos y marcas.
+
+   Semantica fija del color (igual en todas las piezas):
+     azul birome  = lo tuyo y el acento (numeros, referencias, lo que elegiste)
+     rojo         = correccion y error (aspa de error, nota del cuestionario)
+     verde        = correcto (solo cuestionario y soluciones)
+   El color nunca es el unico portador de significado: siempre va con signo
+   o palabra (reglas 16 y 17 de LEEME.md).
+
+   Sin color por materia: la materia se reconoce por la sigla y el encabezado.
+   Este archivo es SOLO claro: la Hoja A4 y todo el material impreso lo cargan
+   solos y salen siempre claros, sin tokens oscuros en ningun bloque. El modo oscuro vive en tokens-oscuro.css, que
+   cargan solo el HTML completo, las diapositivas y el indice.
+   Orden de carga: fuentes.html -> tokens.css -> (tokens-oscuro.css) ->
+   resumen-base.css -> (resumen-pantalla.css) -> resumen-<formato>.css
+   ========================================================================== */
+:root {
+  /* ---- Paleta clara (contraste sobre #FFFFFF / gris al imprimir en escala) ---- */
+  --papel:   #FFFFFF;
+  --tinta:   #1D1F23;   /* 16,5:1  gris 14 */
+  --lapiz:   #55585E;   /*  7,1:1  gris 35  texto secundario, epigrafes */
+  --filete:  #C9CCD1;   /*  1,6:1  gris 79  filetes de tabla */
+  --mesa:    #E8E9EC;   /* fondo detras de la hoja, solo pantalla */
+  --azul:    #1C3F94;   /*  9,6:1  gris 28  acento: lo tuyo */
+  --rojo:    #C8373D;   /*  5,2:1  gris 43  correccion y error */
+  --verde:   #1E6B3A;   /*  6,5:1  gris 37  correcto (cuestionario y soluciones) */
+  --seleccion: #DCE4F4; /* azul tenue: solo seleccion de texto y destino de un enlace */
+
+  /* ---- Tipografia: sans humanista en todo; mono solo para codigo ---- */
+  --f-texto:  "Estudio Sans", "Estudio Marcas", sans-serif;
+  --f-codigo: "Estudio Mono", "Estudio Marcas", monospace;
+  --f-marcas: "Estudio Marcas", "Estudio Sans", sans-serif;
+  --f-mate:   "Estudio Sans", "Estudio Mate", math;
+
+  /* ---- Escala de pantalla (los formatos impresos la redefinen en pt).
+     Alegreya Sans tiene la altura de x chica: 19 px rinde como 17 px de
+     una sans comun. ---- */
+  --t-cuerpo: 19px;
+  --t-nota:   15.5px;   /* margen, epigrafes, tablas */
+  --t-h1:     2.6rem;
+  --t-h2:     1.42rem;
+  --t-h3:     1.08rem;
+  --t-numeral: 6.2rem;  /* numero de unidad: el unico lugar audaz */
+  --interlinea: 1.42;
+
+  /* ---- Geometria: sangria a la izquierda (numeros, rotulos colgados y
+     marcas), columna de texto, columna de margen a la derecha ---- */
+  --sangria: 3.6rem;
+  --texto:   35rem;
+  --margen:  13rem;
+  --hueco:   1.8rem;
+  /* Ancho que el texto corrido deja libre a la derecha para la columna de margen.
+     Figuras y notas (.con-nota) lo recuperan con margen negativo. La Hoja A4 lo
+     pone en 0: el texto ocupa todo el ancho; figuras y notas
+     conservan su columna derecha. */
+  --reserva: calc(var(--margen) + var(--hueco));
+
+  /* ---- Ritmo vertical desigual a proposito (regla 13) ---- */
+  --antes-seccion:   2.9em;
+  --despues-seccion: .6em;
+  --entre-bloques:   .95em;
+  --antes-sintesis:  1.6em;
+
+  /* ---- Margenes de carpeta: UNICA fuente de valores para todo
+     lo imprimible , A4 a doble
+     faz espejada. Los leen herramientas/margenes.py (PDF, .docx, regla 22)
+     y verificar_reglas.py (regla 23), que falla si algun @page de los CSS
+     usa otros valores. Como var() no funciona dentro de @page, cada CSS
+     de impresion repite estos numeros literales; cambiarlos aca y en esos
+     @page juntos (la regla 23 avisa si quedan distintos). ---- */
+  --hoja-interior: 20mm;   /* perforar y encarpetar */
+  --hoja-exterior: 10mm;
+  --hoja-superior: 15mm;   /* aloja la cabeza de hoja ("Hoja n de N") */
+  --hoja-inferior: 5mm;    /* subir si una impresora corta el borde */
+
+  /* Cuerpo de texto de TODO lo impreso en A4 (Hoja A4 del resumen, material impreso y TP en
+     HTML): 12 pt (valor configurable). UNICO lugar del tamano: resumen-a4.css,
+     material-a4.css y tp-a4.css lo toman de aca con --t-cuerpo: var(--hoja-cuerpo). */
+  --hoja-cuerpo: 12pt;
+
+  color-scheme: light;
+}

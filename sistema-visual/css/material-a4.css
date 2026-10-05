@@ -1,0 +1,193 @@
+/* ==========================================================================
+   material-a4.css - Material impreso en HTML A4 (sistema v4): parciales
+   digitalizados, modelos de practica y hojas de soluciones.
+   --------------------------------------------------------------------------
+   Carga: fuentes.html -> tokens -> este, mas
+     --include-in-header=incluir/a4-pagina.html            (antes de Paged.js)
+     --include-in-header=incluir/paged-init.html  (nunca por CDN)
+     --lua-filter=incluir/material.lua
+     -M espejo=false   (opcional, si no se imprime: margenes iguales en todas las hojas;
+                        ver incluir/espejo.lua; sin esto, doble faz espejada)
+     --include-after-body=incluir/formulas-rectas.html
+   El mecanismo de hoja es el del resumen A4 (Paged.js, mismos tokens y
+   Alegreya Sans); el PDF es este HTML impreso con Firefox (A4, margenes "Ninguno", escala 100 %, sin
+   encabezados ni pies, con fondos) o con herramientas/imprimir_a4.py.
+
+   Doble faz con los margenes de carpeta (tokens.css, --hoja-*):
+   interior 20 mm, exterior 10 mm, superior 15 mm, inferior 5 mm; caja de
+   texto de 180 mm de ancho. Desde el rotulo tipo plano es UNA SOLA LINEA
+   en el margen superior, junto a la cabeza de hoja: del lado interior "materia | tema"
+   (lo escribe incluir/material.lua) y del exterior "Hoja n de N" (esta hoja de
+   estilo); sin datos personales ni fecha. No hay nada al pie: el area de texto
+   ocupa toda la hoja (180 x 277 mm). Excepcion explicita del material impreso: la
+   linea superior lleva materia y tema (la de los resumenes no lleva sigla ni unidad).
+   Enunciado: todo en tinta. Soluciones: el resultado en verde (correcto),
+   siempre con la palabra "Resultado"; el aviso de errata del original en
+   rojo (error), con la palabra "Errata". Nada de fondos de color.
+
+   Clases (las arma incluir/material.lua desde Markdown):
+     .cabecera-original   titulo, fecha y renglones del encabezado fiel
+     .consigna            consigna general del original, entre filetes
+     .ejercicio           numero colgado + enunciado, incisos (ol), .datos, .fig
+     .espacio             espacio en blanco para responder, sin lineas
+     .paso, .resultado, .supuesto, .errata     hojas de soluciones
+     table                tablas comunes
+   ========================================================================== */
+:root {
+  --t-cuerpo: var(--hoja-cuerpo);   /* 12 pt: el tamano vive en tokens.css */
+  --t-nota: 9.8pt;
+  --interlinea: 1.34;
+}
+
+@page {
+  size: A4;
+  margin: 15mm 10mm 5mm 20mm;
+}
+/* Pagina impar (derecha): el interior es el borde izquierdo. Numero de hoja
+   del lado exterior, en el margen superior (sin sigla). */
+@page :right {
+  margin-left: 20mm;
+  margin-right: 10mm;
+  @top-right { content: "Hoja " counter(page) " de " counter(pages); font-family: "Estudio Sans", sans-serif; font-size: 8pt; color: var(--tinta); vertical-align: bottom; padding-bottom: 3.5mm; }
+}
+/* Pagina par (izquierda): espejada */
+@page :left {
+  margin-left: 10mm;
+  margin-right: 20mm;
+  @top-left { content: "Hoja " counter(page) " de " counter(pages); font-family: "Estudio Sans", sans-serif; font-size: 8pt; color: var(--tinta); vertical-align: bottom; padding-bottom: 3.5mm; }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--f-texto);
+  font-size: var(--t-cuerpo);
+  line-height: var(--interlinea);
+  font-kerning: normal;
+  font-variant-numeric: lining-nums proportional-nums;
+  text-align: justify;      /* texto justificado y sin guionado, como los TP */
+  hyphens: none;
+}
+/* Titulos, encabezado del original, tablas, epigrafes y rotulos a la izquierda */
+h1, h2, h3, th, td, caption, .epigrafe, .subtitulo, .cab, .cabecera-original, .consigna, .nota-tabla,
+.espacio, .ejercicio > .n { text-align: left; hyphens: none; }
+::selection { background: var(--seleccion); }
+p { margin: 0; }
+* { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+img { max-width: 100%; }
+
+/* ---------------- Encabezado del original (texto fiel) ---------------- */
+.cabecera-original { margin: 0 0 7pt; }
+.cabecera-original .cab {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: 4pt;
+  margin-bottom: 7pt;
+  border-bottom: 1.4pt solid var(--tinta);
+}
+.cab-titulo { font-size: 14pt; font-weight: 800; line-height: 1.3; }
+.cab-fecha { font-size: 11pt; font-weight: 700; }
+.cabecera-original p { font-size: 11pt; font-weight: 700; margin: 0 0 7pt; }
+.consigna {
+  font-size: 10.4pt;
+  font-weight: 700;
+  padding: 4pt 0;
+  margin: 2pt 0 12pt;
+  border-top: .6pt solid var(--lapiz);
+  border-bottom: .6pt solid var(--lapiz);
+  break-inside: avoid;
+}
+.consigna p { margin: 0; }
+
+/* ---------------- Titulos de las hojas de soluciones ---------------- */
+h1 { font-size: 16pt; font-weight: 800; line-height: 1.25; margin: 0 0 3pt; break-after: avoid; }
+h2 { font-size: 12.8pt; font-weight: 700; line-height: 1.22; margin: 9pt 0 3pt; break-after: avoid; }
+h3 { font-size: 12pt; font-weight: 500; font-style: italic; margin: 8pt 0 2pt; break-after: avoid; }
+.subtitulo {
+  font-size: 10.6pt;
+  color: var(--lapiz);
+  margin: 0 0 12pt;
+  padding-bottom: 5pt;
+  border-bottom: 1.4pt solid var(--tinta);
+}
+.subtitulo p { margin: 0; }
+
+/* ---------------- Ejercicios: numero colgado ---------------- */
+.ejercicio { position: relative; margin: 0 0 3pt 24pt; break-inside: avoid; }
+.ejercicio > .n {
+  position: absolute;
+  left: -24pt;
+  top: 0;
+  width: 24pt;
+  font-size: 12.8pt;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.ejercicio p { margin: 0 0 3pt; }
+.ejercicio > p:first-of-type { break-after: avoid; }
+ol { margin: 2pt 0 0; padding-left: 16pt; }
+ol > li { margin: 2pt 0 0; padding-left: 0; }
+ol > li::marker { font-weight: 700; font-variant-numeric: lining-nums tabular-nums; }
+li > p { margin: 0 0 2pt; }
+ol[type="a"] { list-style-type: lower-alpha; }
+.fig { margin: 5pt 0 3pt; break-inside: avoid; }
+.fig svg { display: block; height: auto; color: var(--tinta); font-family: var(--f-texto); }
+.epigrafe { font-size: 9.2pt; color: var(--lapiz); margin: 1pt 0 0; }
+.datos { margin: 3pt 0; }
+.datos .rotulo { font-weight: 700; font-style: italic; }
+.espacio { display: block; margin: 0; padding: 0; break-inside: avoid; }
+
+/* ---------------- Hojas de soluciones ---------------- */
+.paso { margin: 2pt 0; }
+.resultado { margin: 3pt 0 6pt; color: var(--verde); font-weight: 700; break-inside: avoid; }
+.resultado .rotulo { font-style: italic; }
+.resultado math { font-weight: 700; }
+.supuesto { font-size: 10.4pt; font-style: italic; color: var(--lapiz); margin: 2pt 0 5pt; }
+.errata { font-size: 10.4pt; color: var(--rojo); margin: 2pt 0 5pt; }
+.supuesto .rotulo, .errata .rotulo { font-weight: 700; }
+.supuesto p, .errata p, .resultado p { margin: 0; }
+/* Hoja de resultados: tabla de una sola vista (numero, inciso, concepto, valor) */
+.tabla-resultados { margin: 0 0 8pt; }
+.tabla-resultados table { border-top: 0; border-bottom: 0; }
+.tabla-resultados td { padding: 3.5pt 8pt; vertical-align: middle; }   /* aire a los dos lados del filete vertical */
+.tabla-resultados td:first-child { width: 24pt; font-weight: 800; padding-left: 0; }
+.tabla-resultados td:nth-child(2) { width: 18pt; font-weight: 700; }
+.tabla-resultados td:last-child { color: var(--verde); font-weight: 700; }
+.tabla-resultados td:last-child math { font-weight: 700; }
+
+/* ---------------- Formulas ---------------- */
+math { font-family: var(--f-mate); }
+math[display="block"] { font-size: 1.12em; display: block math; text-align: left; margin: 2pt 0; }
+p:has(> math[display="block"]) { margin: 3pt 0; }
+math:not([display="block"]) mfrac { math-style: normal; font-size: .9em; }
+
+/* ---------------- Tablas ---------------- */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 3pt 0 6pt;
+  font-size: var(--t-nota);
+  line-height: 1.32;
+  font-variant-numeric: lining-nums tabular-nums;
+  border-top: 1.5pt solid var(--tinta);
+  border-bottom: 1.5pt solid var(--tinta);
+  break-inside: avoid;
+}
+th { font-weight: 700; text-align: left; vertical-align: bottom; border-bottom: 1pt solid var(--tinta); }
+th, td { padding: 2pt 8pt 2pt 0; overflow-wrap: break-word; text-align: left; }
+td { vertical-align: top; }
+tbody tr + tr td { border-top: .5pt solid var(--filete); }
+th:last-child, td:last-child { padding-right: 0; }
+/* linea vertical entre columnas, como los TP */
+th + th, td + td { border-left: .5pt solid var(--filete); padding-left: 8pt; }
+td.fusion { border-top: 0; }
+.nota-tabla { font-size: var(--t-nota); margin: 4pt 0; }
+.nota-tabla .rotulo { font-weight: 700; }
+.rotulo { font-weight: 700; }
+
+/* Paged.js marca con text-align-last: justify todo bloque partido entre hojas */
+div[data-split-to], li[data-split-to], ol[data-split-to], ul[data-split-to], td[data-split-to], p[data-split-to] { text-align-last: auto !important; }
