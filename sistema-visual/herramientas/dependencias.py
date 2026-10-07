@@ -15,7 +15,7 @@ Uso:
                                                                        despues de que la persona lo autorizo)
     python sistema-visual/herramientas/dependencias.py --json          resultado en JSON (para otros programas)
 
-Funciones (--para): html, pdf, word, graficos, diagramas, verificacion, todo.
+Funciones (--para): html, pdf, word, graficos, diagramas, verificacion, ias, todo.
 Codigo de salida: 0 si no falta nada obligatorio para lo pedido, 3 si falta algo obligatorio.
 
 Como modulo:
@@ -71,6 +71,14 @@ PROGRAMAS = {
     "plantuml": ("PlantUML (plantuml.jar)", "https://plantuml.com/download",
                  {"windows": "descargar plantuml.jar de la pagina oficial", "macos": "descargar plantuml.jar de la pagina oficial",
                   "linux": "descargar plantuml.jar de la pagina oficial"}),
+    "codex": ("Codex de OpenAI (opcional: verificacion con un segundo modelo)",
+              "las instrucciones oficiales de OpenAI (ver apoyo/ias-complementarias.md)",
+              {s: "instalarlo con las instrucciones oficiales de OpenAI e iniciar sesion; solo si decidis usar las IAs complementarias"
+               for s in ("windows", "macos", "linux")}),
+    "agy": ("Antigravity CLI, comando agy (opcional: lectura de fuentes con Gemini)",
+            "las instrucciones oficiales de Google (ver apoyo/ias-complementarias.md)",
+            {s: "instalarlo con las instrucciones oficiales de Google e iniciar sesion; solo si decidis usar las IAs complementarias"
+             for s in ("windows", "macos", "linux")}),
     "libreoffice": ("LibreOffice (revisar los .docx sin Word)", "https://www.libreoffice.org/download/",
                     {"windows": "winget install --id TheDocumentFoundation.LibreOffice -e",
                      "macos": "brew install --cask libreoffice", "linux": "sudo apt install libreoffice-writer"}),
@@ -88,6 +96,8 @@ FUNCIONES = {
 }
 FUNCIONES["todo"] = (sorted({x for o, _ in FUNCIONES.values() for x in o}),
                      sorted({x for o, r in FUNCIONES.values() for x in r}))
+# Opcional y aparte: no entra en «todo», para no pedir lo que la persona no decidio usar
+FUNCIONES["ias"] = ([], ["codex", "agy"])
 
 
 def _version_pandoc():
@@ -137,6 +147,14 @@ def estado(clave):
     if clave == "libreoffice":
         r = entorno.soffice()
         return bool(r), r or "no se encontro"
+    if clave in ("codex", "agy"):
+        # funciones opcionales: se buscan igual que las usa cada herramienta (ESTUDIO_CODEX / ESTUDIO_AGY, PATH)
+        if clave == "codex":
+            from verificar_codex import buscar_codex as buscar
+        else:
+            from gemini_agy import buscar_agy as buscar
+        r = buscar()
+        return bool(r), r or "no se encontro (no hace falta salvo que decidas usar las IAs complementarias)"
     raise KeyError(clave)
 
 

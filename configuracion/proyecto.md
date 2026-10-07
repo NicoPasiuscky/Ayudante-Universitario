@@ -79,6 +79,11 @@ No hace falta completarlo a mano: la IA lo comprueba con `python sistema-visual/
 - Modelo de uso diario y modelo para revisiones difíciles: [completar]
 - ¿Permite subagentes o ejecutar comandos? [completar sí/no]
 
+## IAs complementarias (opcional)
+Función opcional que reparte el trabajo entre varias IAs: Codex para verificar y Gemini para leer fuentes y derivar resúmenes cortos. Está apagada por defecto y solo se activa con tu decisión, después de que la IA te la explique y la pruebes (guía: `apoyo/ias-complementarias.md`). Lo que lean esas herramientas viaja a los servidores de sus empresas.
+- Consulta hecha (pendiente / hecha): pendiente
+- Decisión final (pendiente / no / Codex para verificar / Gemini para leer y derivar cortos / las dos): pendiente
+
 ## Notas propias
 Cualquier regla personal que quieras que valga siempre (se anota acá y no en la memoria de la herramienta, para que viaje con el proyecto):
 -
