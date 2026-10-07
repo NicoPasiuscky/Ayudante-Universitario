@@ -74,6 +74,7 @@ Aunque no sea un flujo con nombre, lo podés pedir:
 - **Contale tu criterio de la cátedra**: cómo se redondea, qué signos se usan, qué notación. Quedan anotados en el `Materia.md` y valen para siempre.
 - **Revisá lo que te avisa.** Las ambigüedades de la fuente y los agregados propios no verificados son lo único que puede estar mal; el resto sale contrastado con tu material.
 - **Mirá los documentos antes de imprimir.** La IA los revisa, pero la última mirada es tuya.
+- **Más de una IA (opcional).** Podés sumar Codex para verificar y Gemini para leer fuentes y derivar cortos. La IA te lo explica una vez, no activa nada sin tu decisión, y lo que procesan esas herramientas viaja a los servidores de sus empresas (`apoyo/ias-complementarias.md`).
 
 ## 6. Dónde queda todo
 En la carpeta de cada materia (la que indicaste en la puesta en marcha):

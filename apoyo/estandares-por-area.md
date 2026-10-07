@@ -46,6 +46,8 @@ Algoritmos, estructuras de datos, lenguajes, paradigmas, desarrollo e ingenierí
 - Casos de prueba: camino feliz, condiciones de borde y entradas inválidas.
 - Código legible, arquitectura modular y documentación concisa de las interfaces; bloques de código con el lenguaje indicado.
 
+**TP o proyecto con interfaz (web, escritorio o móvil).** La pila, los patrones y el estilo los fija la cátedra, y eso manda sobre cualquier guía de diseño. Si la persona usa una referencia de diseño de interfaces de terceros, consultá solo lo que hace falta y no la cargues entera: por ejemplo, `ui-ux-pro-max` (base local de guías por pila: React, Vue, Angular, JavaFX, WPF, Flutter, entre otras), `awesome-design-md` (un `DESIGN.md` por marca, solo si pide «con el estilo de X») o, de `taste-skill`, solo `redesign-skill` (mejorar una interfaz ya hecha) y `output-skill`; la skill principal de `taste-skill` es para landing y portfolio, no para tableros ni CRUD. Ninguna viene incluida en este proyecto: son de terceros (licencia MIT) y las instala la persona por su cuenta desde el repositorio oficial de cada una, conservando su licencia. Esto vale para el producto que entrega la persona; no cambia el sistema visual v4 de los resúmenes ni de los documentos de estudio.
+
 ### Sistemas, redes y arquitectura de computadoras
 Arquitectura, sistemas operativos, comunicación de datos, redes, seguridad informática, análisis y diseño de sistemas de información.
 - Estructuración por capas y niveles de abstracción.

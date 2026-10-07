@@ -26,6 +26,9 @@ margenes ni folleto (la regla 26, del folleto, se retiro):
       los colores reales con un clic y se recuerda al recargar
   35  formatos de archivo y nombres: nombres.py pasa sus casos; ninguna skill ni documento afirma que falte el
       PDF o que los formatos se limiten a HTML y Word; resumir, generar-html, material-a4, tp y cuestionario nombran con nombres.py
+  37  jerarquia de titulos (h1 >= 1,25 y h2 >= 1,15 del cuerpo, h1 > h2 > h3), 38 espacio sobre cada titulo mayor que
+      el de abajo, 39 espaciado de letras solo negativo (hasta -0,05 em) y solo en titulos de exhibicion, 40 texto de
+      figura SVG no tapado por un rectangulo opaco dibujado despues (tomadas de la revision de impeccable)
   (la 22 mide los PDF que imprime imprimir_a4.py de todas las hojas A4: resumenes, material y TP)
 
 Uso:  python herramientas/verificar_reglas.py
@@ -574,7 +577,14 @@ with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
         if "Arial" in st or "<w:caps" in d + st:
             docx_bad.append(f"{nombre}: Arial o mayusculas")
         if perfil == "resumen":
-            esperado = ["Definición", "Ejemplo", "Tabla", "Unidad 3", "Ojo." if "corto" in nombre else "Síntesis"]
+            # Rotulo de definicion y ejemplo: con nombre el documento muestra solo «nombre.»; sin nombre,
+            # «Definición N.N». Se acepta cualquiera de los dos, tomando los nombres del Markdown fuente.
+            md_src = leer("demo", "resumen-corto.md" if "corto" in nombre else "resumen-extenso.md")
+            esperado = ["Tabla", "Unidad 3", "Ojo." if "corto" in nombre else "Síntesis"]
+            for clase, rotulo in (("definicion", "Definición"), ("ejemplo", "Ejemplo")):
+                nombres = re.findall(r'\{\.%s[^}]*titulo="([^"]+)"' % clase, md_src)
+                if nombres and not any(n + "." in txt for n in nombres) or not nombres and rotulo not in txt:
+                    docx_bad.append(f"{nombre}: falta el rotulo de {clase} ({nombres[:1] or rotulo})")
             if "extenso" in nombre:
                 esperado += ["Figura", "Resolución.", "Errores frecuentes", "Glosario", "Índice"]
             falta = [x for x in esperado if x not in txt]
@@ -598,6 +608,149 @@ with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
 regla(36, "Word: fuentes incrustadas, cuerpo de 12 pt, sin marcadores crudos de Pandoc, todos los componentes traducidos, "
       "cabecera sin sigla ni unidad, material con el rotulo de una linea superior y sin pie (margenes en la regla 22)",
       not docx_bad, "; ".join(docx_bad) or "; ".join(docx_info))
+
+
+# ---- 37 a 40. Reglas tomadas de la revision de impeccable, solo las que valen para impreso
+def a_px(v, base=16.0, cuerpo=None):
+    """Valor CSS simple a px (px, pt, rem, em). `em` se mide contra `cuerpo`."""
+    m = re.fullmatch(r"\s*(-?[0-9]*\.?[0-9]+)\s*(px|pt|rem|em)?\s*", v)
+    if not m:
+        return None
+    n, u = float(m.group(1)), m.group(2)
+    return n * {"px": 1, "pt": 96 / 72, "rem": base, "em": cuerpo or base, None: 1}[u]
+
+
+def token(css, nombre, def_=None):
+    m = re.findall(r"%s\s*:\s*([^;]+);" % re.escape(nombre), css)
+    return (m[-1].strip() if m else def_)
+
+
+# 37. Jerarquia de titulos: h1 al menos 1,25 veces el cuerpo, h2 al menos 1,15 veces, y h1 > h2 > h3 en tamano.
+# Se mide por formato a partir de los tokens (--t-h1/2/3 y --t-cuerpo).
+CUERPO_TOK = a_px(token(leer("css", "tokens.css"), "--t-cuerpo"))
+jer = {
+    "resumen, pantalla": (leer("css", "tokens.css"), None),
+    "resumen, Hoja A4": (leer("css", "tokens.css") + chr(10) + sin_comentarios(leer("css", "resumen-a4.css")), None),
+}
+mal37, det37 = [], []
+for nombre, (css, _) in jer.items():
+    css = sin_comentarios(css)
+    c = a_px(token(css, "--t-cuerpo", "19px")) if "A4" not in nombre else a_px("12pt")
+    h = [a_px(token(css, "--t-h%d" % i)) for i in (1, 2, 3)]
+    if None in h or c is None:
+        mal37.append(nombre + " (no se pudo leer)"); continue
+    ok = h[0] / c >= 1.25 and h[1] / c >= 1.15 and h[0] > h[1] > h[2]
+    det37.append(f"{nombre}: h1 {h[0]/c:.2f}, h2 {h[1]/c:.2f}, h3 {h[2]/c:.2f} del cuerpo")
+    if not ok:
+        mal37.append(nombre)
+for nombre, css in (("material A4", CSS_P), ("TP A4", CSS_TP)):
+    h = {}
+    for sel, cuerpo_css in reglas_css(css):
+        if sel in ("h1", "h2", "h3"):
+            m = re.search(r"font-size\s*:\s*([^;]+)", cuerpo_css)
+            if m:
+                h[sel] = a_px(m.group(1))
+    c = a_px("12pt")
+    ok = len(h) == 3 and h["h1"] / c >= 1.25 and h["h2"] / c >= 1.05 and h["h1"] > h["h2"] > h["h3"] - 0.01
+    det37.append(f"{nombre}: " + ", ".join(f"{k} {v/c:.2f}" for k, v in sorted(h.items())))
+    if not ok:
+        mal37.append(nombre)
+regla(37, "jerarquia de titulos: h1 al menos 1,25 veces el cuerpo, h2 al menos 1,15 (1,05 en material y TP, donde el titulo "
+      "se distingue ademas por peso y numero), h1 > h2 > h3", not mal37, "; ".join(det37) + (f"; REVISAR: {mal37}" if mal37 else ""))
+
+# 38. El espacio sobre un titulo es mayor que el de abajo (el titulo se une a lo que presenta).
+tok_r = sin_comentarios(leer("css", "tokens.css"))
+mal38, det38 = [], []
+def _margen(valor, tok=None):
+    partes = valor.split()
+    def un(v):
+        mv = re.fullmatch(r"var\((--[a-z-]+)\)", v)
+        if mv:
+            v = token(tok_r, mv.group(1)) or ""
+        return a_px(v, cuerpo=16)
+    arriba = un(partes[0]); abajo = un(partes[2]) if len(partes) >= 3 else (un(partes[0]) if len(partes) == 1 else un(partes[0]))
+    return arriba, abajo
+for nombre, css in (("resumen", CSS_RES), ("material", CSS_P), ("tp", CSS_TP)):
+    for sel, cuerpo_css in reglas_css(css):
+        if sel in ("h2", "h3", "h1"):
+            m = re.search(r"(?<![-a-z])margin\s*:\s*([^;]+)", cuerpo_css)
+            if not m:
+                continue
+            a, b = _margen(m.group(1))
+            if a is None or b is None or (a == 0 and sel == "h1"):
+                continue
+            det38.append(f"{nombre} {sel}: {a:.0f} sobre, {b:.0f} bajo")
+            if not a > b:
+                mal38.append(f"{nombre} {sel}")
+regla(38, "el espacio sobre cada titulo (h2, h3, y h1 si lo tiene) es mayor que el de abajo", not mal38 and bool(det38),
+      "; ".join(det38) + (f"; REVISAR: {mal38}" if mal38 else ""))
+
+# 39. Espaciado de letras: nunca positivo (regla 2) y el negativo solo en titulos de exhibicion, hasta -0,05 em.
+mal39 = []
+for n, css in TODOS.items():
+    for sel, c in reglas_css(css):
+        for m in re.finditer(r"letter-spacing\s*:\s*([^;]+)", c):
+            v = m.group(1).strip()
+            em = re.fullmatch(r"(-?[0-9]*\.?[0-9]+)em", v)
+            if v in ("0", "normal"):
+                continue
+            if not em or float(em.group(1)) < -0.05 or float(em.group(1)) > 0 or not re.search(r"h1|numeral|titulo|cab-titulo", sel):
+                mal39.append(f"{n}: {sel} = {v}")
+regla(39, "espaciado de letras solo negativo, hasta -0,05 em y solo en titulos de exhibicion", not mal39, "; ".join(mal39))
+
+# 40. Texto tapado en las figuras SVG: un texto no queda debajo de un rectangulo opaco dibujado despues.
+def _bbox_texto(a, cont):
+    try:
+        x = float(a.get("x", 0)); y = float(a.get("y", 0)); fs = float(a.get("font-size", 12))
+    except ValueError:
+        return None
+    w = len(cont) * fs * .5
+    anc = a.get("text-anchor", "start")
+    x0 = x - w / 2 if anc == "middle" else (x - w if anc == "end" else x)
+    return (x0, y - fs * .8, x0 + w, y + fs * .2)
+
+class _Svg(HTMLParser):
+    def __init__(self):
+        super().__init__(); self.el = []; self.txt = None; self.svg = 0
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if tag == "svg": self.svg += 1; self.el.append(("svg", None, None)); return
+        if not self.svg: return
+        if tag == "rect" and a.get("fill", "none") not in ("none", "transparent") and "url(" not in a.get("fill", "")                 and float(a.get("fill-opacity", 1) or 1) >= .95 and float(a.get("opacity", 1) or 1) >= .95:
+            try:
+                x, y, w, h = (float(a.get(k, 0)) for k in ("x", "y", "width", "height"))
+                self.el.append(("rect", (x, y, x + w, y + h), a.get("fill")))
+            except ValueError:
+                pass
+        if tag == "text": self.txt = [a, ""]
+    def handle_data(self, d):
+        if self.txt: self.txt[1] += d
+    def handle_endtag(self, tag):
+        if tag == "text" and self.txt:
+            b = _bbox_texto(*self.txt)
+            if b and self.txt[1].strip(): self.el.append(("text", b, self.txt[1].strip()))
+            self.txt = None
+        if tag == "svg": self.svg -= 1
+
+def _tapado(html):
+    pr = _Svg(); pr.feed(html); out = []
+    for i, (k, b, c) in enumerate(pr.el):
+        if k != "text": continue
+        area = (b[2] - b[0]) * (b[3] - b[1])
+        for k2, b2, c2 in pr.el[i + 1:]:
+            if k2 == "svg": break
+            if k2 != "rect": continue
+            ix = max(0, min(b[2], b2[2]) - max(b[0], b2[0])); iy = max(0, min(b[3], b2[3]) - max(b[1], b2[1]))
+            if area > 0 and ix * iy / area > .3:
+                out.append(c); break
+    return out
+tapados = []
+for f in HTML_TODOS:
+    ruta = os.path.join(R, f)
+    if os.path.exists(ruta):
+        tapados += [f"{f}: {t}" for t in _tapado(open(ruta, encoding="utf-8").read())]
+regla(40, "ningun texto de figura SVG queda tapado por un rectangulo opaco dibujado despues (aproximado: ancho del texto = 0,5 em por letra)",
+      not tapados, "; ".join(tapados[:6]))
 
 
 # ---- Contraste WCAG de los colores de texto

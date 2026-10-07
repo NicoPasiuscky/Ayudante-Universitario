@@ -639,6 +639,30 @@ def ajustes(xml, con_fuentes=True):
         else:
             sig = s.find(W + "themeFontLang")
             (sig.addprevious(mp) if sig is not None else s.append(mp))
+    # Modo de compatibilidad 15 (Word 2013 o mas): sin esto Word usa el diseno de tablas heredado, en el que el
+    # borde izquierdo de la tabla queda desplazado hacia afuera el margen de celda (margen + sangria - 1,94 mm), y
+    # las tablas sobresalian del margen de 10 mm (regla 22). Con el modo 15 el borde queda en margen +
+    # sangria. Va antes de rsids, segun el orden del esquema de settings.
+    compat = s.find(W + "compat")
+    if compat is None:
+        compat = etree.fromstring(
+            f'<w:compat xmlns:w="{NS["w"]}"><w:compatSetting w:name="compatibilityMode" '
+            'w:uri="http://schemas.microsoft.com/office/word" w:val="15"/></w:compat>')
+        for nombre in ("docVars", "rsids"):
+            ancla = s.find(W + nombre)
+            if ancla is not None:
+                ancla.addprevious(compat)
+                break
+        else:
+            s.find(M + "mathPr").addprevious(compat)
+    # si ya habia un w:compat (por ejemplo de una plantilla con modo 12), se fuerza el valor 15
+    modo = next((e for e in compat.findall(W + "compatSetting")
+                 if e.get(W + "name") == "compatibilityMode" and e.get(W + "uri") == "http://schemas.microsoft.com/office/word"), None)
+    if modo is None:
+        modo = etree.SubElement(compat, W + "compatSetting")
+        modo.set(W + "name", "compatibilityMode")
+        modo.set(W + "uri", "http://schemas.microsoft.com/office/word")
+    modo.set(W + "val", "15")
     mf = mp.find(M + "mathFont")
     if mf is None:
         mf = etree.Element(M + "mathFont")

@@ -20,7 +20,7 @@ El proyecto necesita programas y bibliotecas (Python, Pandoc, un navegador, algu
 - Si la persona no quiere instalar algo opcional, seguí con lo que haya y decile qué función queda limitada (por ejemplo, sin navegador no hay PDF, pero sí HTML).
 
 ## Puesta en marcha (solo la primera vez)
-Preguntá lo que falte en `configuracion/proyecto.md`, de a pocas preguntas por vez, y anotá las respuestas en el archivo: universidad y facultad, carrera y plan, año o cuatrimestre actual, variante del idioma, carpeta raíz donde la persona guarda el material de cada materia, y qué áreas de conocimiento cubre la carrera (así sabés qué estándares de `apoyo/estandares-por-area.md` aplicar). No inventes ningún dato: si algo no se sabe, queda como renglón para completar.
+Preguntá lo que falte en `configuracion/proyecto.md`, de a pocas preguntas por vez, y anotá las respuestas en el archivo: universidad y facultad, carrera y plan, año o cuatrimestre actual, variante del idioma, carpeta raíz donde la persona guarda el material de cada materia, y qué áreas de conocimiento cubre la carrera (así sabés qué estándares de `apoyo/estandares-por-area.md` aplicar). No inventes ningún dato: si algo no se sabe, queda como renglón para completar. Al terminar, y solo si en `configuracion/proyecto.md` la consulta sobre las IAs complementarias sigue pendiente, hacela una vez (sección «IAs complementarias»).
 
 ## Cómo se ejecutan los roles
 El trabajo se reparte en cuatro roles, cada uno con su archivo en `roles/`: `analista-fuente`, `profesor`, `verificador` y `cuestionador`. Los flujos (`flujos/`) dicen cuándo interviene cada uno.
@@ -106,6 +106,16 @@ Salen en HTML modo Hoja A4 (el mismo Paged.js del resumen), desde Markdown con P
 
 ## Cuestionario (ver `flujos/cuestionario.md`)
 HTML autocontenido, siempre oscuro, solo HTML. Dos modos elegibles al inicio: **Práctica** (sin límite de tiempo, repetición espaciada SM-2 activa) y **Parcial** (tiempo de 30, 60, 90 o 120 minutos o valor libre, corrección al final, con o sin volver a preguntas anteriores, sin SM-2, mejor resultado aparte). Tipos de pregunta: opción múltiple, selección múltiple (con nota parcial opcional), verdadero o falso, respuesta numérica, V o F por ítems, completar con menús y enunciado común con varias partes; el enunciado admite fórmulas `$...$`, tablas y figuras SVG.
+
+## IAs complementarias (opcional, solo con decisión de la persona)
+Existe una función opcional que reparte el trabajo entre varias IAs: **Codex verifica** TP, resúmenes y cuestionarios en solo lectura, y **Gemini** (por Antigravity CLI, `agy`) **lee fuentes y deriva resúmenes cortos** de extensos ya verificados; la IA principal redacta y coordina. Detalle, pruebas, requisitos y riesgos: `apoyo/ias-complementarias.md`. Está apagada por defecto y la activa la persona, no vos. El procedimiento es siempre este:
+1. **Informá** una sola vez, en pocas líneas: que existe, qué hace cada IA y qué implica (el contenido viaja a servidores de terceros, cuentas y cupos propios, más tiempo). Ofrecé la guía.
+2. **Preguntá si le interesa.** Si no, anotá «no» en `configuracion/proyecto.md` y no vuelvas a ofrecerla salvo que la persona lo pida.
+3. **Si le interesa, explicá cómo se hace** (guía, sección «Cómo se prepara») y ayudala a prepararlo y a probarlo con material sin datos personales. Las instalaciones y el inicio de sesión los hace ella; pedí permiso en cada paso, como en «Dependencias».
+4. **La decisión final es de la persona.** Después de la prueba preguntá si la deja activada y cuáles (Codex, Gemini o las dos). Solo con un sí claro anotalo en `configuracion/proyecto.md` y empezá a usarlas; cualquier otra respuesta es «no por ahora».
+- Mientras la decisión no sea un sí, no ejecutes `verificar_codex.py` ni `gemini_agy.py` y no mandes nada a esos servicios: todo sigue con el procedimiento propio.
+- Con la función activada, el contenido que se envía es solo material de la cátedra y resúmenes, sin carátulas ni datos personales. Nunca uses `--dangerously-skip-permissions` ni equivalentes.
+- Si una herramienta falla o no hay cupo, el trabajo **no queda verificado**: avisá y que la persona decida entre esperar o usar el rol `verificador` propio. Nunca des por verificado lo que no se verificó.
 
 ## Gráficos, diagramas y tablas
 Nunca una interpretación geométrica en texto en vez de un gráfico real, ni una tabla comparativa disuelta en prosa. Qué generar según el área de la materia: `roles/profesor.md` y `apoyo/estandares-por-area.md`. Los diagramas de un resumen o material final van como SVG a mano o Graphviz; Mermaid solo para borradores. Antes de generar un gráfico, extraer el de la fuente si ya es claro y de buena calidad.

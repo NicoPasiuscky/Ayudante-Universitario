@@ -137,6 +137,9 @@ Pedile a la IA: «Agregá a `apoyo/estandares-por-area.md` el área de [tu área
 
 Regla de oro para cualquier cambio de reglas: se escribe en estos archivos, no solo en la memoria de la herramienta de IA, así vale con cualquier modelo y viaja con el proyecto.
 
+### 4.4 IAs complementarias (opcional)
+Si querés repartir el trabajo entre varias IAs (Codex para verificar, Gemini para leer fuentes y derivar resúmenes cortos), la IA te lo explica una vez al final de la puesta en marcha y no activa nada sin tu decisión. Qué es, qué implica (el contenido viaja a servidores de terceros, cuentas y cupos propios), cómo se prepara y cómo se decide: `apoyo/ias-complementarias.md`. Comprobar qué hay instalado: `python sistema-visual/estudio.py entorno --para ias` (no instala nada). Si no la querés, no tenés que hacer nada: el proyecto funciona completo sin ella.
+
 ## 5. Verificar la instalación
 1. `python sistema-visual/estudio.py entorno`: Python y Pandoc tienen que aparecer; también un navegador, si querés PDF y Word.
 2. Generar un documento de prueba, con el contenido de demostración incluido:

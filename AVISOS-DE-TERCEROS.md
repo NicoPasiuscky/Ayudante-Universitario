@@ -20,9 +20,37 @@ Las carpetas `sistema-visual/fonts/web/` y `sistema-visual/fonts/graficos/` cont
 ## Mermaid y sus dependencias (MIT y otras)
 `sistema-visual/mermaid-init.html` incluye la biblioteca Mermaid (licencia MIT, https://github.com/mermaid-js/mermaid) empaquetada junto con sus dependencias, entre ellas DOMPurify (Apache 2.0 o MPL 2.0, © Cure53 y colaboradores), lodash y underscore (MIT). Los avisos de cada una están conservados dentro del archivo. Este archivo solo se agrega a un documento cuando este contiene diagramas Mermaid.
 
+## diagram-design (MIT)
+`sistema-visual/herramientas/diagramas_v4.py` es una adaptación de las reglas de diagramación de `diagram-design` (https://github.com/cathrynlavery/diagram-design) al sistema visual de este proyecto: reescrita en Python, con otras medidas, tipografía y colores. Se conserva el aviso de la licencia original:
+
+```
+MIT License
+
+Copyright (c) 2025 Cathryn Lavery
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## Programas externos (no se distribuyen con el proyecto)
 Se instalan aparte y se ejecutan como programas independientes; su licencia no se extiende al proyecto.
 - Pandoc (GPL v2 o posterior), Python, Graphviz, PlantUML, navegadores (Firefox, Chrome, Edge, Brave, Chromium u otros), LibreOffice.
+- Solo si la persona decide usar las IAs complementarias (`apoyo/ias-complementarias.md`): Codex (OpenAI) y Antigravity CLI (`agy`, Google). Cada uno se rige por sus propias condiciones de uso, y lo que procesan viaja a los servidores de esas empresas.
 - Bibliotecas de Python opcionales o requeridas: PyMuPDF (AGPL v3 o licencia comercial de Artifex), NumPy, SymPy, Matplotlib, Pillow, fontTools, lxml, Docling.
 
 Quien use el proyecto personalmente no tiene obligaciones adicionales por ellos. Quien lo integre en un servicio o producto distribuido debe revisar las condiciones de cada una, en especial la AGPL de PyMuPDF.

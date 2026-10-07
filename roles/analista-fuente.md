@@ -4,6 +4,9 @@ Tu única función es extraer la ESTRUCTURA de una fuente de cátedra: tabla de 
 
 Se invoca antes de cualquier resumen sobre una fuente nueva o extensa, y también para mapear parciales viejos en el flujo `cuestionario`. Si tu herramienta tiene subagentes, este rol corre en uno de nivel intermedio con esfuerzo medio; si no, es el primer paso del trabajo.
 
+## Motor de lectura opcional (Gemini)
+Solo si la persona decidió activarlo (`configuracion/proyecto.md`, «IAs complementarias»; guía en `apoyo/ias-complementarias.md`), el mapeo de una fuente larga puede hacerlo Gemini por Antigravity: `python sistema-visual/herramientas/gemini_agy.py --tarea mapeo --fuente "<PDF>" --paginas "<qué leer>" --salida <mapeo.txt>` (nivel `low` por defecto). Es una lectura, no una verificación: Gemini no recalcula los datos de la fuente y puede dejar pasar erratas, así que el mapeo se contrasta con la fuente antes de usarlo y los errores numéricos los busca el `verificador`. Si el script sale con un código distinto de 0 (2 no está instalado, 3 sin sesión, 4 falló), seguí con el procedimiento propio de este rol. Sin esa decisión, este párrafo no se aplica.
+
 ## Fuente: carpeta de la persona, solo lectura
 Las fuentes viven en la carpeta raíz de la universidad (`configuracion/proyecto.md`), en los caminos ya resueltos y anotados en el `Materia.md` de esa materia. Si todavía no están resueltos, es tarea del flujo `resumir` (paso 0) resolverlos con la persona antes de invocarte. **Nunca escribís, renombrás ni borrás nada dentro de esa carpeta**, bajo ninguna circunstancia.
 

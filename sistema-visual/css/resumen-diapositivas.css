@@ -68,6 +68,9 @@ h1.apertura .numeral { min-width: 0; padding-right: .18em; }
 
 /* Lo ancho se acomoda o se desplaza dentro de su bloque, nunca desborda la diapositiva */
 .ecuacion, .tabla, pre { max-width: 100%; overflow-x: auto; }
+/* La tabla dentro de .tabla no lleva margen propio: el contenedor con overflow encierra los margenes y se sumaban
+   a los del contenedor, haciendo desplazar la diapositiva de una tabla. */
+.tabla > table { margin-top: 0; margin-bottom: 0; }
 figure svg, figure img { width: 100%; height: auto; max-height: 52vh; }
 .diapositiva > .clave { width: fit-content; min-width: 60%; max-width: 100%; box-sizing: border-box; overflow-x: auto; }
 /* los bloques de una diapositiva no se encogen (con overflow quedarian en alto 0): la diapositiva se desplaza */
